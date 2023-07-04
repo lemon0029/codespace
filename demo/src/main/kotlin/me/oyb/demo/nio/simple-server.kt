@@ -3,6 +3,8 @@ package me.oyb.demo.nio
 import me.oyb.demo.common.getLogger
 import org.slf4j.Logger
 import org.springframework.boot.CommandLineRunner
+import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.runApplication
 import org.springframework.stereotype.Component
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
@@ -13,9 +15,9 @@ import java.nio.channels.SocketChannel
 import kotlin.concurrent.thread
 
 @Component
-class SimpleNioEchoServer : CommandLineRunner {
+class SimpleServer : CommandLineRunner {
 
-    private val log: Logger = getLogger<SimpleNioEchoServer>()
+    private val log: Logger = getLogger<SimpleServer>()
 
     private val selector = Selector.open()
     private val serverSocketChannel = ServerSocketChannel.open()
@@ -49,6 +51,7 @@ class SimpleNioEchoServer : CommandLineRunner {
                             log.info("connection closed: {}", channel.remoteAddress)
                             channel.close()
                         }
+
                         is ServerSocketChannel -> {
                             log.info("server socket closed")
                             channel.close()
@@ -61,33 +64,43 @@ class SimpleNioEchoServer : CommandLineRunner {
 
     fun dispatch(key: SelectionKey) {
         when {
-            key.isAcceptable -> {
-                val socketChannel = (key.channel() as ServerSocketChannel).accept()
-
-                socketChannel
-                    .configureBlocking(false)
-                    .register(selector, SelectionKey.OP_READ)
-
-                log.info("new connection accepted: {}", socketChannel.remoteAddress)
-            }
-
-            key.isReadable -> {
-                val socketChannel = key.channel() as SocketChannel
-                val bytes = socketChannel.readAllBytes()
-                val remoteAddress = socketChannel.remoteAddress
-
-                log.info("read \"{}\" from {}", bytes.decodeToString(), remoteAddress)
-
-                socketChannel.write(ByteBuffer.wrap(bytes))
-                log.info("write \"{}\" to {}", bytes.decodeToString(), remoteAddress)
-
-                socketChannel.close()
-                log.info("connection closed: {}", remoteAddress)
-            }
+            key.isAcceptable -> doAccept(key)
+            key.isReadable -> doRead(key)
         }
+    }
+
+    fun doAccept(key: SelectionKey) {
+        val socketChannel = (key.channel() as ServerSocketChannel).accept()
+
+        socketChannel
+            .configureBlocking(false)
+            .register(selector, SelectionKey.OP_READ)
+
+        log.info("new connection accepted: {}", socketChannel.remoteAddress)
+    }
+
+    fun doRead(key: SelectionKey) {
+        val socketChannel = key.channel() as SocketChannel
+        val bytes = socketChannel.readAllBytes()
+        val remoteAddress = socketChannel.remoteAddress
+
+        log.info("read \"{}\" from {}", bytes.decodeToString(), remoteAddress)
+
+        socketChannel.write(ByteBuffer.wrap(bytes))
+        log.info("write \"{}\" to {}", bytes.decodeToString(), remoteAddress)
+
+        socketChannel.close()
+        log.info("connection closed: {}", remoteAddress)
     }
 
     override fun run(vararg args: String?) {
         thread(name = "nio-echo-server") { run(8080) }
     }
+}
+
+@SpringBootApplication
+class SimpleServerApplication
+
+fun main() {
+    runApplication<SimpleServerApplication>()
 }

@@ -7,9 +7,9 @@ import java.nio.ByteBuffer
 import java.nio.channels.SocketChannel
 import java.util.concurrent.TimeUnit
 
-class SimpleBlockingClient {
+class SimpleClient {
 
-    private val log: Logger = getLogger<SimpleBlockingClient>()
+    private val log: Logger = getLogger<SimpleClient>()
 
     fun run(serverPort: Int = 8080, serverHost: String = "localhost") {
         val socketChannel = SocketChannel.open()
@@ -32,5 +32,5 @@ class SimpleBlockingClient {
 }
 
 fun main() {
-    SimpleBlockingClient().run(serverPort = 8080)
+    SimpleClient().run(serverPort = 8080)
 }
