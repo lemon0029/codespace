@@ -43,20 +43,7 @@ class SimpleServer : CommandLineRunner {
                 try {
                     dispatch(selectionKey)
                 } catch (e: Exception) {
-                    log.error("error dispatching selection key", e)
-                    selectionKey.cancel()
-
-                    when (val channel = selectionKey.channel()) {
-                        is SocketChannel -> {
-                            log.info("connection closed: {}", channel.remoteAddress)
-                            channel.close()
-                        }
-
-                        is ServerSocketChannel -> {
-                            log.info("server socket closed")
-                            channel.close()
-                        }
-                    }
+                    handleError(e, selectionKey)
                 }
             }
         }
@@ -91,6 +78,23 @@ class SimpleServer : CommandLineRunner {
 
         socketChannel.close()
         log.info("connection closed: {}", remoteAddress)
+    }
+
+    fun handleError(e: Exception, key: SelectionKey) {
+        log.error("error dispatching selection key", e)
+        key.cancel()
+
+        when (val channel = key.channel()) {
+            is SocketChannel -> {
+                log.info("connection closed: {}", channel.remoteAddress)
+                channel.close()
+            }
+
+            is ServerSocketChannel -> {
+                log.info("server socket closed")
+                channel.close()
+            }
+        }
     }
 
     override fun run(vararg args: String?) {
