@@ -1,6 +1,7 @@
-package me.oyb.demo.nio
+package me.oyb.demo.nio.normal
 
 import me.oyb.demo.common.getLogger
+import me.oyb.demo.nio.readAllBytes
 import org.slf4j.Logger
 import org.springframework.boot.CommandLineRunner
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -12,12 +13,15 @@ import java.nio.channels.SelectionKey
 import java.nio.channels.Selector
 import java.nio.channels.ServerSocketChannel
 import java.nio.channels.SocketChannel
+import java.util.concurrent.TimeUnit
 import kotlin.concurrent.thread
 
 @Component
 class SimpleServer : CommandLineRunner {
 
-    private val log: Logger = getLogger<SimpleServer>()
+    companion object {
+        private val log: Logger = getLogger<SimpleServer>()
+    }
 
     private val selector = Selector.open()
     private val serverSocketChannel = ServerSocketChannel.open()
@@ -73,6 +77,8 @@ class SimpleServer : CommandLineRunner {
 
         log.info("read \"{}\" from {}", bytes.decodeToString(), remoteAddress)
 
+        // simulate a long time operation
+        TimeUnit.MILLISECONDS.sleep(30L)
         socketChannel.write(ByteBuffer.wrap(bytes))
         log.info("write \"{}\" to {}", bytes.decodeToString(), remoteAddress)
 
@@ -102,7 +108,7 @@ class SimpleServer : CommandLineRunner {
     }
 }
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = ["me.oyb.demo.nio.normal"])
 class SimpleServerApplication
 
 fun main() {
