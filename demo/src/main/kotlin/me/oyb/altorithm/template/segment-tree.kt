@@ -1,4 +1,4 @@
-package me.oyb.altorithm
+package me.oyb.altorithm.template
 
 class SegmentTree {
     private lateinit var nums: Array<Int>

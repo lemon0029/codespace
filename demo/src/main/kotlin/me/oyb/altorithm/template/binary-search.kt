@@ -1,4 +1,4 @@
-package me.oyb.altorithm
+package me.oyb.altorithm.template
 
 fun <T : Comparable<T>> Array<T>.binarySearch(target: T, fromIndex: Int, toIndex: Int): Int {
     var low = fromIndex
