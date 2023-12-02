@@ -1,6 +1,7 @@
-package me.oyb.demo.nio.reactor
+package me.oyb.redis.server
 
 import me.oyb.demo.common.getLogger
+import me.oyb.demo.nio.readCommand
 import me.oyb.demo.nio.readLine
 import org.slf4j.Logger
 import java.nio.channels.SelectionKey
@@ -59,7 +60,7 @@ class SubReactor(private val threadPool: Executor) : Runnable {
                     selectionKey.isReadable -> {
                         val socketChannel = selectionKey.channel() as SocketChannel
 
-                        val bytes = socketChannel.readLine()
+                        val bytes = socketChannel.readCommand()
                         if (bytes.isEmpty()) {
                             continue
                         }

@@ -13,11 +13,12 @@ class Handler(private val socketChannel: SocketChannel, private val bytes: ByteA
     }
 
     fun handle() {
-        log.info("read from ${socketChannel.remoteAddress}: ${bytes.decodeToString()}")
+        log.info("read from ${socketChannel.remoteAddress}: ${bytes.decodeToString().replace("\n", "\\n")}")
 
         // simulate a long time operation
-        TimeUnit.MILLISECONDS.sleep(30L)
-        socketChannel.write(ByteBuffer.wrap(bytes))
-        socketChannel.close()
+//        TimeUnit.MILLISECONDS.sleep(30L)
+//        socketChannel.write(ByteBuffer.wrap(bytes))
+//        log.info("write to ${socketChannel.remoteAddress}: ${bytes.decodeToString().replace("\n", "\\n")}")
+//        socketChannel.close()
     }
 }

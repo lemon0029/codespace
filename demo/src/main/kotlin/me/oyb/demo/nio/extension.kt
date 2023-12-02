@@ -4,7 +4,19 @@ import java.nio.ByteBuffer
 import java.nio.channels.ClosedChannelException
 import java.nio.channels.SocketChannel
 
-fun SocketChannel.readAllBytes(): ByteArray {
+fun SocketChannel.readCommand(): ByteArray {
+    val buffer = ByteBuffer.allocate(22)
+    var result = ByteArray(0)
+
+    read(buffer)
+    buffer.flip()
+    result += buffer.getBytes()
+    buffer.clear()
+
+    return result
+}
+
+fun SocketChannel.readLine(): ByteArray {
     val buffer = ByteBuffer.allocate(1024)
     var result = ByteArray(0)
 
@@ -13,6 +25,9 @@ fun SocketChannel.readAllBytes(): ByteArray {
             buffer.flip()
             result += buffer.getBytes()
             buffer.clear()
+            if (result.last() == '\n'.code.toByte()) {
+                break
+            }
         }
     } catch (e: ClosedChannelException) {
         return result

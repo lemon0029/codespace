@@ -1,7 +1,7 @@
 package me.oyb.demo.nio.normal
 
 import me.oyb.demo.common.getLogger
-import me.oyb.demo.nio.readAllBytes
+import me.oyb.demo.nio.readLine
 import org.slf4j.Logger
 import org.springframework.boot.CommandLineRunner
 import org.springframework.boot.autoconfigure.SpringBootApplication
@@ -72,7 +72,7 @@ class SimpleServer : CommandLineRunner {
 
     fun doRead(key: SelectionKey) {
         val socketChannel = key.channel() as SocketChannel
-        val bytes = socketChannel.readAllBytes()
+        val bytes = socketChannel.readLine()
         val remoteAddress = socketChannel.remoteAddress
 
         log.info("read \"{}\" from {}", bytes.decodeToString(), remoteAddress)
