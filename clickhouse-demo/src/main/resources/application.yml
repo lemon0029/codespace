@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: clickhouse-demo
+
+ch:
+  host: localhost
+  port: 18123
+  database: test
+  user: root
+  password: 123456
+
+  custom-settings: async_insert=1,wait_for_async_insert=1
+  socket-timeout: 60000
