@@ -8,7 +8,10 @@ import com.clickhouse.data.format.BinaryStreamUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.TimeZone;
 
 @Component
@@ -16,6 +19,22 @@ import java.util.TimeZone;
 public class ClientV1BatchInserts {
 
     private final ClickHouseNode clickHouseNode;
+
+    public long writePart(ClickHouseFormat format, Path path) throws IOException, ClickHouseException {
+
+        try (ClickHouseClient client = ClickHouseClient.newInstance(ClickHouseProtocol.HTTP);
+             BufferedInputStream inputStream = new BufferedInputStream(Files.newInputStream(path))) {
+
+            ClickHouseRequest.Mutation request = client.write(clickHouseNode)
+                    .table("t_foo")
+                    .format(format)
+                    .data(inputStream);
+
+            try (ClickHouseResponse response = request.executeAndWait()) {
+                return response.getSummary().getWrittenRows();
+            }
+        }
+    }
 
     public long withRowBinaryFormat(int total, int batchSize) throws IOException, ClickHouseException {
 

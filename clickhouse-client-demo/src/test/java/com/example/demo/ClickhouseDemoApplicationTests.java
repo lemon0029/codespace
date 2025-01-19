@@ -4,7 +4,9 @@ import com.clickhouse.client.ClickHouseClient;
 import com.clickhouse.client.ClickHouseNode;
 import com.clickhouse.client.ClickHouseProtocol;
 import com.clickhouse.client.ClickHouseResponse;
+import com.clickhouse.data.ClickHouseFormat;
 import com.example.demo.insert.*;
+import com.example.demo.select.ClientV1QueryExecutor;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -12,6 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import javax.sql.DataSource;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -19,6 +25,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.LongSummaryStatistics;
+import java.util.stream.Stream;
 
 @Slf4j
 @SpringBootTest
@@ -44,6 +51,9 @@ class ClickhouseDemoApplicationTests {
 
     @Autowired
     private ClientV1BatchInserts clientV1BatchInserts;
+
+    @Autowired
+    private ClientV1QueryExecutor clientV1QueryExecutor;
 
     @Test
     void testClient() {
@@ -162,11 +172,75 @@ class ClickhouseDemoApplicationTests {
         measureTime("Client Batch Insert", 10, () -> {
             try {
                 long writtenRows = clientV1BatchInserts.withRowBinaryFormat(100000, 10000);
-                Assertions.assertEquals(10000, writtenRows);
+                Assertions.assertEquals(100000, writtenRows);
                 long count = jdbcBatchInserts.count();
                 Assertions.assertTrue(count >= 100000);
             } catch (Exception e) {
                 Assertions.fail(e);
+            }
+        });
+    }
+
+    @Test
+    void testClientV1Query() {
+        try {
+            int partSize = 10000;
+
+            for (int i = 0; i < 100; i++) {
+                byte[] bytes = clientV1QueryExecutor.readPart(ClickHouseFormat.Native, partSize, i * partSize);
+                Path path = Path.of("data/native-format/part-%d.bin".formatted(i));
+                Files.write(path, bytes, StandardOpenOption.CREATE_NEW);
+            }
+
+            for (int i = 0; i < 100; i++) {
+                byte[] bytes = clientV1QueryExecutor.readPart(ClickHouseFormat.RowBinary, partSize, i * partSize);
+                Path path = Path.of("data/row-binary-format/part-%d.bin".formatted(i));
+                Files.write(path, bytes, StandardOpenOption.CREATE_NEW);
+            }
+
+        } catch (Exception e) {
+            Assertions.fail(e);
+        }
+    }
+
+    @Test
+    void testClientV1BatchInsertWriteNativeFormatData() {
+        Path path = Path.of("data/native-format");
+
+        measureTime("Write Block Data", 1, () -> {
+            try (Stream<Path> files = Files.list(path)) {
+
+                files.forEach(it -> {
+                    try {
+                        long writtenRows = clientV1BatchInserts.writePart(ClickHouseFormat.Native, it);
+                        Assertions.assertEquals(10000, writtenRows);
+                    } catch (Exception e) {
+                        Assertions.fail(e);
+                    }
+                });
+
+            } catch (IOException ignored) {
+            }
+        });
+    }
+
+    @Test
+    void testClientV1BatchInsertWriteRowBinaryFormatData() {
+        Path path = Path.of("data/row-binary-format");
+
+        measureTime("Write RowBinary Data", 1, () -> {
+            try (Stream<Path> files = Files.list(path)) {
+
+                files.forEach(it -> {
+                    try {
+                        long writtenRows = clientV1BatchInserts.writePart(ClickHouseFormat.RowBinary, it);
+                        Assertions.assertEquals(10000, writtenRows);
+                    } catch (Exception e) {
+                        Assertions.fail(e);
+                    }
+                });
+
+            } catch (IOException ignored) {
             }
         });
     }
