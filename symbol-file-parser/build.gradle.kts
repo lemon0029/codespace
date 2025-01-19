@@ -10,6 +10,8 @@ repositories {
 }
 
 dependencies {
+    implementation("net.fornwall:jelf:0.9.0")
+
     testImplementation(kotlin("test"))
 }
 

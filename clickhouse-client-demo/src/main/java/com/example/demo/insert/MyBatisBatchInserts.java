@@ -24,8 +24,7 @@ public class MyBatisBatchInserts {
                 items.add(new FooData(RandomDataProvider.string(), RandomDataProvider.localDateTime()));
             }
 
-            fooMapper.insertBatch(items);
-            System.out.println(true);
+            fooMapper.customInsertBatch(items);
         }
     }
 

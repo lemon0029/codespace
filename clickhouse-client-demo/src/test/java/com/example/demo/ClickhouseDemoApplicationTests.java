@@ -6,6 +6,7 @@ import com.clickhouse.client.ClickHouseProtocol;
 import com.clickhouse.client.ClickHouseResponse;
 import com.example.demo.insert.JdbcBatchInserts;
 import com.example.demo.insert.MyBatisBatchInserts;
+import com.example.demo.insert.MyBatisPlusBatchInserts;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -36,6 +37,9 @@ class ClickhouseDemoApplicationTests {
 
     @Autowired
     private MyBatisBatchInserts myBatisBatchInserts;
+
+    @Autowired
+    private MyBatisPlusBatchInserts myBatisPlusBatchInserts;
 
     @Test
     void testClient() {
@@ -96,11 +100,11 @@ class ClickhouseDemoApplicationTests {
     }
 
     @Test
-    void testMyBatisBatchInsert() {
+    void testMyBatisBatchInsertValuesFormat() {
 
         measureTime("MyBatis Batch Insert - Values Format", 3, () -> {
             try {
-                myBatisBatchInserts.withValuesFormat(100000, 100);
+                myBatisBatchInserts.withValuesFormat(100000, 10000);
                 long count = jdbcBatchInserts.count();
                 Assertions.assertTrue(count >= 100000);
             } catch (SQLException e) {
@@ -110,7 +114,7 @@ class ClickhouseDemoApplicationTests {
     }
 
     @Test
-    void testMyBatisBatchInsert1() {
+    void testMyBatisBatchInsertRowBinaryFormat() {
 
         measureTime("MyBatis Batch Insert - RowBinary Format", 3, () -> {
             try {
@@ -123,6 +127,18 @@ class ClickhouseDemoApplicationTests {
         });
     }
 
+    @Test
+    void testMyBatisPlusInsertBatch() {
+        measureTime("MyBatis Batch Insert - RowBinary Format", 3, () -> {
+            try {
+                myBatisPlusBatchInserts.execute(100000, 10000);
+                long count = jdbcBatchInserts.count();
+                Assertions.assertTrue(count >= 100000);
+            } catch (Exception e) {
+                Assertions.fail(e);
+            }
+        });
+    }
 
     private static void measureTime(String taskName, int times, Runnable runnable) {
         List<Long> timeSpent = new ArrayList<>();
