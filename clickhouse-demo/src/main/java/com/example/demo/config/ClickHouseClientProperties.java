@@ -23,7 +23,7 @@ public class ClickHouseClientProperties {
     private String customSettings;
 
     public String getJdbcUrl() {
-        return  "jdbc:ch://%s:%d/%s".formatted(host, port, database);
+        return "jdbc:ch://%s:%d/%s".formatted(host, port, database);
     }
 
     public Properties getOptions() {

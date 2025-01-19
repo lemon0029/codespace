@@ -11,3 +11,7 @@ ch:
 
   custom-settings: async_insert=1,wait_for_async_insert=1
   socket-timeout: 60000
+
+
+mybatis:
+  mapper-locations: classpath:mapper/*Mapper.xml
