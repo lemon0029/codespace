@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.example</groupId>
-    <artifactId>clickhouse-demo</artifactId>
+    <artifactId>clickhouse-client-demo</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>clickhouse-demo</name>
     <description>clickhouse-demo</description>
