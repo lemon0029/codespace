@@ -7,6 +7,7 @@ import com.clickhouse.client.ClickHouseResponse;
 import com.example.demo.insert.JdbcBatchInserts;
 import com.example.demo.insert.MyBatisBatchInserts;
 import com.example.demo.insert.MyBatisPlusBatchInserts;
+import com.example.demo.insert.JdbcNativeBatchInserts;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -34,6 +35,9 @@ class ClickhouseDemoApplicationTests {
 
     @Autowired
     private JdbcBatchInserts jdbcBatchInserts;
+
+    @Autowired
+    private JdbcNativeBatchInserts jdbcNativeBatchInserts;
 
     @Autowired
     private MyBatisBatchInserts myBatisBatchInserts;
@@ -88,7 +92,7 @@ class ClickhouseDemoApplicationTests {
 
     @Test
     void testJdbcBatchInsert() {
-        measureTime("Jdbc Batch Insert - RowBinary Format", 3, () -> {
+        measureTime("Jdbc Batch Insert - RowBinary Format", 10, () -> {
             try {
                 jdbcBatchInserts.execute(100000, 10000);
                 long count = jdbcBatchInserts.count();
@@ -132,6 +136,19 @@ class ClickhouseDemoApplicationTests {
         measureTime("MyBatis Batch Insert - RowBinary Format", 3, () -> {
             try {
                 myBatisPlusBatchInserts.execute(100000, 10000);
+                long count = jdbcBatchInserts.count();
+                Assertions.assertTrue(count >= 100000);
+            } catch (Exception e) {
+                Assertions.fail(e);
+            }
+        });
+    }
+
+    @Test
+    void testJdbcNativeBatchInsert() {
+        measureTime("Native JDBC Batch Insert", 10, () -> {
+            try {
+                jdbcNativeBatchInserts.execute(100000, 10000);
                 long count = jdbcBatchInserts.count();
                 Assertions.assertTrue(count >= 100000);
             } catch (Exception e) {
