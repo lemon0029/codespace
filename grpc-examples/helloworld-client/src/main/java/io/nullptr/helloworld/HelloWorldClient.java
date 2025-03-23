@@ -3,6 +3,9 @@ package io.nullptr.helloworld;
 import io.grpc.Grpc;
 import io.grpc.InsecureChannelCredentials;
 import io.grpc.ManagedChannel;
+import io.grpc.health.v1.HealthCheckRequest;
+import io.grpc.health.v1.HealthCheckResponse;
+import io.grpc.health.v1.HealthGrpc;
 
 public class HelloWorldClient {
 
@@ -18,5 +21,10 @@ public class HelloWorldClient {
 
         HelloReply helloReply = greeterServiceBlockingStub.sayHello(helloRequest);
         System.out.println(helloReply);
+
+        HealthGrpc.HealthBlockingStub healthBlockingStub = HealthGrpc.newBlockingStub(channel);
+        HealthCheckRequest healthCheckRequest = HealthCheckRequest.newBuilder().build();
+        HealthCheckResponse healthCheckResponse = healthBlockingStub.check(healthCheckRequest);
+        System.out.println(healthCheckResponse);
     }
 }

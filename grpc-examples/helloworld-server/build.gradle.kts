@@ -2,6 +2,7 @@ import com.google.protobuf.gradle.id
 
 plugins {
     id("java")
+    id("org.springframework.boot") version "3.4.4"
     id("io.spring.dependency-management") version "1.1.7"
     id("com.google.protobuf") version "0.9.4"
 }
@@ -16,31 +17,27 @@ repositories {
     mavenCentral()
 }
 
-dependencies {
-    implementation("io.grpc:grpc-core")
-    implementation("io.grpc:grpc-protobuf")
-    implementation("io.grpc:grpc-stub")
-    implementation("io.grpc:grpc-netty")
+extra["springGrpcVersion"] = "0.5.0"
 
-    testImplementation(platform("org.junit:junit-bom:5.10.0"))
-    testImplementation("org.junit.jupiter:junit-jupiter")
+dependencies {
+    implementation("io.grpc:grpc-services")
+    implementation("org.springframework.grpc:spring-grpc-spring-boot-starter")
 }
 
 dependencyManagement {
     imports {
-        mavenBom("io.grpc:grpc-bom:${property("grpc.version")}")
-//        mavenBom("com.google.protobuf:protobuf-bom:${property("protobuf-java.version")}")
+        mavenBom("org.springframework.grpc:spring-grpc-dependencies:${property("springGrpcVersion")}")
     }
 }
 
 protobuf {
     protoc {
-        artifact = "com.google.protobuf:protoc:${property("protobuf-java.version")}"
+        artifact = "com.google.protobuf:protoc"
     }
 
     plugins {
         id("grpc") {
-            artifact = "io.grpc:protoc-gen-grpc-java:${property("grpc.version")}"
+            artifact = "io.grpc:protoc-gen-grpc-java"
         }
     }
 
