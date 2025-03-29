@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "io.nullptr"
-version = "1.0-SNAPSHOT"
+version = "0.1"
 
 extra["protobuf-java.version"] = "3.25.6"
 extra["grpc.version"] = "1.70.0"
@@ -22,7 +22,6 @@ dependencies {
     implementation("io.grpc:grpc-protobuf")
     implementation("io.grpc:grpc-stub")
     implementation("io.grpc:grpc-netty")
-    implementation("io.grpc:grpc-services")
 
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")

@@ -1,5 +1,6 @@
 package io.nullptr.ch_client;
 
+import com.google.protobuf.ByteString;
 import io.grpc.Channel;
 import io.grpc.Grpc;
 import io.grpc.InsecureChannelCredentials;
@@ -13,6 +14,8 @@ import java.util.concurrent.TimeUnit;
 public class ClickHouseClient {
 
     private URI serverUri;
+    private String serverVersion;
+
     private String username;
     private String password;
 
@@ -38,23 +41,42 @@ public class ClickHouseClient {
                 .userAgent("clickhouse-client-grpc-v0.1")
                 .build();
 
+        String serverVersion = clickHouseClient.queryServerVersion();
+
+        System.out.printf("Connected to ClickHouse Server: %s:%d;version=%s%n", serverHost, serverPort, serverVersion);
+
         return clickHouseClient;
     }
 
     public void query(String sql) {
+        Result result = executeQuery(sql);
+        System.out.println(result);
+    }
+
+    private synchronized String queryServerVersion() {
+        if (serverVersion != null) {
+            return serverVersion;
+        }
+
+        Result result = executeQuery("select version()");
+        ByteString output = result.getOutput();
+        serverVersion = new String(output.toByteArray());
+        return serverVersion;
+    }
+
+    private Result executeQuery(String query) {
         ClickHouseGrpc.ClickHouseBlockingStub clickHouseBlockingStub = ClickHouseGrpc.newBlockingStub(channel);
         QueryInfo queryInfo = QueryInfo.newBuilder()
-                .setQuery(sql)
+                .setQuery(query)
                 .setUserName(username)
                 .setPassword(password)
                 .build();
 
-        Result result = clickHouseBlockingStub.executeQuery(queryInfo);
-        System.out.println(result);
+        return clickHouseBlockingStub.executeQuery(queryInfo);
     }
 
     public static void main(String[] args) {
         ClickHouseClient client = ClickHouseClient.connect("localhost:9100", "default", "passwd-1m39z");
-        client.query("select version() as ch_server_version");
+        client.query("select rand64()");
     }
 }
