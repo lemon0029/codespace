@@ -32,6 +32,8 @@ dependencies {
 }
 
 dependencyManagement {
+    applyMavenExclusions(false)
+
     imports {
         mavenBom("io.grpc:grpc-bom:${property("grpc.version")}")
         mavenBom("com.google.protobuf:protobuf-bom:${property("protobuf-java.version")}")

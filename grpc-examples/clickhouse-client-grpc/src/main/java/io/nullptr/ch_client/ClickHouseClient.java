@@ -98,6 +98,18 @@ public class ClickHouseClient {
         return clickHouseStub.executeQuery(queryInfo);
     }
 
+    public Result executeQuery(String query, ByteString data) {
+        QueryInfo queryInfo = QueryInfo.newBuilder()
+                .setQuery(query)
+                .setUserName(username)
+                .setPassword(password)
+                .setDatabase(database)
+                .setInputData(data)
+                .build();
+
+        return clickHouseStub.executeQuery(queryInfo);
+    }
+
     public static void main(String[] args) {
         ClickHouseClient client = ClickHouseClient.connect("localhost:9100/test", "default", "passwd-1m39z");
         client.query("select rand64()");
@@ -107,5 +119,9 @@ public class ClickHouseClient {
         Result result = client.executeQuery("select * from t_event_report where 0", DataFormat.JSON);
         JSONResult jsonResult = (JSONResult) DataDecoder.decode(result.getOutput(), DataFormat.JSON);
         System.out.println(jsonResult);
+
+        ByteString data = ByteString.copyFrom("123weru\t234\n477ab\t123".getBytes());
+        Result result1 = client.executeQuery("insert into t_event_report(event_id, running_duration) format TabSeparated values (?, ?)", data);
+        System.out.println(result1);
     }
 }
