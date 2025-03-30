@@ -9,6 +9,8 @@ import io.nullptr.ch.client.grpc.QueryInfo;
 import io.nullptr.ch.client.grpc.Result;
 
 import java.net.URI;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class ClickHouseClient {
@@ -18,8 +20,10 @@ public class ClickHouseClient {
 
     private String username;
     private String password;
+    private String database;
 
     private Channel channel;
+    private ClickHouseGrpc.ClickHouseBlockingStub clickHouseStub;
 
     public static ClickHouseClient connect(String url, String username, String password) {
 
@@ -32,6 +36,17 @@ public class ClickHouseClient {
         clickHouseClient.username = username;
         clickHouseClient.password = password;
 
+        String uriPath = clickHouseClient.serverUri.getPath();
+        if (uriPath != null) {
+            List<String> parts = Arrays.stream(uriPath.split("/"))
+                    .filter(it -> !it.isBlank())
+                    .toList();
+
+            if (parts.size() == 1) {
+                clickHouseClient.database = parts.getFirst();
+            }
+        }
+
         String serverHost = clickHouseClient.serverUri.getHost();
         int serverPort = clickHouseClient.serverUri.getPort();
 
@@ -40,6 +55,8 @@ public class ClickHouseClient {
                 .keepAliveTimeout(30, TimeUnit.SECONDS)
                 .userAgent("clickhouse-client-grpc-v0.1")
                 .build();
+
+        clickHouseClient.clickHouseStub = ClickHouseGrpc.newBlockingStub(clickHouseClient.channel);
 
         String serverVersion = clickHouseClient.queryServerVersion();
 
@@ -51,6 +68,11 @@ public class ClickHouseClient {
     public void query(String sql) {
         Result result = executeQuery(sql);
         System.out.println(result);
+    }
+
+    public List<String> showTables() {
+        Result result = executeQuery("show tables");
+        return Arrays.stream(new String(result.getOutput().toByteArray()).split("\n")).toList();
     }
 
     private synchronized String queryServerVersion() {
@@ -65,18 +87,20 @@ public class ClickHouseClient {
     }
 
     private Result executeQuery(String query) {
-        ClickHouseGrpc.ClickHouseBlockingStub clickHouseBlockingStub = ClickHouseGrpc.newBlockingStub(channel);
         QueryInfo queryInfo = QueryInfo.newBuilder()
                 .setQuery(query)
                 .setUserName(username)
                 .setPassword(password)
+                .setDatabase(database)
                 .build();
 
-        return clickHouseBlockingStub.executeQuery(queryInfo);
+        return clickHouseStub.executeQuery(queryInfo);
     }
 
     public static void main(String[] args) {
-        ClickHouseClient client = ClickHouseClient.connect("localhost:9100", "default", "passwd-1m39z");
+        ClickHouseClient client = ClickHouseClient.connect("localhost:9100/test", "default", "passwd-1m39z");
         client.query("select rand64()");
+        List<String> tables = client.showTables();
+        tables.forEach(System.out::println);
     }
 }
