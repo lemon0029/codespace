@@ -23,6 +23,10 @@ dependencies {
     implementation("io.grpc:grpc-stub")
     implementation("io.grpc:grpc-netty")
 
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.18.3")
+    compileOnly("org.projectlombok:lombok:1.18.36")
+    annotationProcessor("org.projectlombok:lombok:1.18.36")
+
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 }

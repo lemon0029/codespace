@@ -66,12 +66,12 @@ public class ClickHouseClient {
     }
 
     public void query(String sql) {
-        Result result = executeQuery(sql);
+        Result result = executeQuery(sql, DataFormat.TAB_SEPARATED);
         System.out.println(result);
     }
 
     public List<String> showTables() {
-        Result result = executeQuery("show tables");
+        Result result = executeQuery("show tables", DataFormat.TAB_SEPARATED);
         return Arrays.stream(new String(result.getOutput().toByteArray()).split("\n")).toList();
     }
 
@@ -80,18 +80,19 @@ public class ClickHouseClient {
             return serverVersion;
         }
 
-        Result result = executeQuery("select version()");
+        Result result = executeQuery("select version()", DataFormat.TAB_SEPARATED);
         ByteString output = result.getOutput();
         serverVersion = new String(output.toByteArray());
         return serverVersion;
     }
 
-    private Result executeQuery(String query) {
+    public Result executeQuery(String query, DataFormat outputFormat) {
         QueryInfo queryInfo = QueryInfo.newBuilder()
                 .setQuery(query)
                 .setUserName(username)
                 .setPassword(password)
                 .setDatabase(database)
+                .setOutputFormat(outputFormat.getFormat())
                 .build();
 
         return clickHouseStub.executeQuery(queryInfo);
@@ -102,5 +103,9 @@ public class ClickHouseClient {
         client.query("select rand64()");
         List<String> tables = client.showTables();
         tables.forEach(System.out::println);
+
+        Result result = client.executeQuery("select * from t_event_report where 0", DataFormat.JSON);
+        JSONResult jsonResult = (JSONResult) DataDecoder.decode(result.getOutput(), DataFormat.JSON);
+        System.out.println(jsonResult);
     }
 }
