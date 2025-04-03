@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: cmb-fiance
+  ai:
+    mcp:
+      server:
+        name: cmb-fiance-mcp-server
+        version: 1.0.0
+        type: SYNC
