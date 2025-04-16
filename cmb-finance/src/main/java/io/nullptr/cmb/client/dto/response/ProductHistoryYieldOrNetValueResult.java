@@ -43,7 +43,7 @@ public class ProductHistoryYieldOrNetValueResult {
 
         for (Map<String, String> item : chart) {
             String date = item.get("date");
-            String net = item.get("yield");
+            String net = item.get("net");
 
             LocalDate rangeDate = LocalDate.parse(date.replaceAll("\\.", "-"));
             DailyNetValue dailyNetValue = new DailyNetValue();
