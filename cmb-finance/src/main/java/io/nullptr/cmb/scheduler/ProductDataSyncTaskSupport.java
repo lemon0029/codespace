@@ -9,17 +9,15 @@ import io.nullptr.cmb.domain.event.ProductCreatedEvent;
 import io.nullptr.cmb.domain.event.ProductSaleOutStateChangedEvent;
 import io.nullptr.cmb.domain.repository.ProductNetValueRepository;
 import io.nullptr.cmb.domain.repository.ProductRepository;
-import io.nullptr.cmb.infrastructure.common.Constants;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -29,7 +27,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ZZBProductDataSyncTask {
+public class ProductDataSyncTaskSupport {
 
     private final CmbMobileClient cmbMobileClient;
 
@@ -40,26 +38,10 @@ public class ZZBProductDataSyncTask {
     private final ApplicationEventPublisher applicationEventPublisher;
 
     /**
-     * 更新产品的净值数据（每五分钟执行一次）
-     */
-    @Transactional
-    @Scheduled(fixedDelay = 300_000, initialDelay = 2_000)
-    public void execute() {
-        log.info("Start to execute zzb product data sync task");
-        List<Product> products = updateProduct();
-
-        for (Product product : products) {
-            updateProductNetValue(product);
-        }
-
-        log.info("Task finished: zzb product data sync");
-    }
-
-    /**
      * 更新产品列表
      */
-    private List<Product> updateProduct() {
-        ProductListQueryResult productListQueryResult = cmbMobileClient.queryProductList(Constants.ZZB_PRODUCT_TAG);
+    public List<Product> updateProduct(String productTag) {
+        ProductListQueryResult productListQueryResult = cmbMobileClient.queryProductList(productTag);
         List<ProductListQueryResult.ProductDetail> productDetailList = productListQueryResult.getProductDetailList();
 
         for (ProductListQueryResult.ProductDetail dto : productDetailList) {
@@ -71,7 +53,7 @@ public class ZZBProductDataSyncTask {
 
             String saleOutState = product.getSaleOut();
 
-            product.setProductTag(Constants.ZZB_PRODUCT_TAG);
+            product.setProductTag(productTag);
             product.setSaCode(saCode);
             product.setShortName(dto.getShortName());
             product.setInnerCode(innerCode);
@@ -98,13 +80,13 @@ public class ZZBProductDataSyncTask {
             }
         }
 
-        return productRepository.findAllByProductTag(Constants.ZZB_PRODUCT_TAG);
+        return productRepository.findAllByProductTag(productTag);
     }
 
     /**
      * 更新产品净值数据
      */
-    private void updateProductNetValue(Product product) {
+    public void updateProductNetValue(Product product) {
         LocalDate today = LocalDate.now();
 
         String saCode = product.getSaCode();
@@ -130,6 +112,8 @@ public class ZZBProductDataSyncTask {
         log.info("Query product history net value, [{}, {}, {}]: {}",
                 saCode, innerCode, dataScope, historyNetValueQueryResult);
 
+        List<ProductNetValue> netValues = new ArrayList<>();
+
         Map<String, String> netValueMap = historyNetValueQueryResult.getNetValueMap();
         for (Map.Entry<String, String> entry : netValueMap.entrySet()) {
             LocalDate date = LocalDate.parse(entry.getKey());
@@ -146,8 +130,11 @@ public class ZZBProductDataSyncTask {
             productNetValue.setDate(date);
             productNetValue.setValue(new BigDecimal(entry.getValue()));
 
-            productNetValueRepository.save(productNetValue);
+            netValues.add(productNetValue);
         }
+
+        // TODO 在使用自增主键时，Hibernate 没法做批量插入
+        productNetValueRepository.saveAll(netValues);
     }
 
     /**

@@ -7,13 +7,18 @@ import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest
 @ActiveProfiles("prod")
-class ZZBProductDataSyncTaskTest {
+class ProductDataSyncTaskTest {
 
     @Autowired
-    private ZZBProductDataSyncTask zzbProductDataSyncTask;
+    private ProductDataSyncTask productDataSyncTask;
 
     @Test
-    void execute() {
-        zzbProductDataSyncTask.execute();
+    void updateDataForZZB() {
+        productDataSyncTask.updateDataForZZB();
+    }
+
+    @Test
+    void updateDataForYYB() {
+        productDataSyncTask.updateDataForYYB();
     }
 }
