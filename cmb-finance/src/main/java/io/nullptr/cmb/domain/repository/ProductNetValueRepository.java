@@ -10,4 +10,6 @@ import java.util.List;
 public interface ProductNetValueRepository extends JpaRepository<ProductNetValue, Long> {
 
     List<ProductNetValue> findAllByInnerCode(String innerCode);
+
+    void deleteAllByInnerCode(String innerCode);
 }

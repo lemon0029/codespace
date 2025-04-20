@@ -13,12 +13,17 @@ class ProductDataSyncTaskTest {
     private ProductDataSyncTask productDataSyncTask;
 
     @Test
-    void updateDataForZZB() {
+    void updateDataForZZB() throws InterruptedException {
         productDataSyncTask.updateDataForZZB();
     }
 
     @Test
-    void updateDataForYYB() {
+    void updateDataForYYB() throws InterruptedException {
         productDataSyncTask.updateDataForYYB();
+    }
+
+    @Test
+    void updateDataForDQB() throws InterruptedException {
+        productDataSyncTask.updateDataForDQB();
     }
 }

@@ -12,10 +12,14 @@ import io.nullptr.cmb.domain.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +35,8 @@ public class ProductDataSyncTaskSupport {
 
     private final CmbMobileClient cmbMobileClient;
 
+    private final JdbcTemplate jdbcTemplate;
+
     private final ProductRepository productRepository;
 
     private final ProductNetValueRepository productNetValueRepository;
@@ -40,6 +46,7 @@ public class ProductDataSyncTaskSupport {
     /**
      * 更新产品列表
      */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public List<Product> updateProduct(String productTag) {
         ProductListQueryResult productListQueryResult = cmbMobileClient.queryProductList(productTag);
         List<ProductListQueryResult.ProductDetail> productDetailList = productListQueryResult.getProductDetailList();
@@ -48,9 +55,19 @@ public class ProductDataSyncTaskSupport {
             String saCode = dto.getSaCode();
             String innerCode = dto.getInnerCode();
 
+            // A - 在售；C - 非在售
+            String saleTag = dto.getSaleTag();
+
+            if (!"A".equals(saleTag)) {
+                productRepository.deleteBySaleCode(innerCode);
+                productNetValueRepository.deleteAllByInnerCode(innerCode);
+                continue;
+            }
+
             Product product = productRepository.findByInnerCode(innerCode)
                     .orElse(new Product());
 
+            boolean newProduct = product.getId() == null;
             String saleOutState = product.getSaleOut();
 
             product.setProductTag(productTag);
@@ -63,7 +80,7 @@ public class ProductDataSyncTaskSupport {
             product.setOffNae(dto.getOffNae());
             productRepository.save(product);
 
-            if (!Objects.equals(saleOutState, product.getSaleOut())) {
+            if (saleOutState != null && !Objects.equals(saleOutState, product.getSaleOut())) {
                 ProductSaleOutStateChangedEvent event =
                         new ProductSaleOutStateChangedEvent(
                                 product.getId(),
@@ -74,7 +91,7 @@ public class ProductDataSyncTaskSupport {
                 applicationEventPublisher.publishEvent(event);
             }
 
-            if (product.getId() == null) {
+            if (newProduct) {
                 ProductCreatedEvent productCreatedEvent = new ProductCreatedEvent(product.getSaleCode());
                 applicationEventPublisher.publishEvent(productCreatedEvent);
             }
@@ -86,6 +103,7 @@ public class ProductDataSyncTaskSupport {
     /**
      * 更新产品净值数据
      */
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void updateProductNetValue(Product product) {
         LocalDate today = LocalDate.now();
 
@@ -133,8 +151,26 @@ public class ProductDataSyncTaskSupport {
             netValues.add(productNetValue);
         }
 
+        saveAllProductNetValues(netValues);
+    }
+
+    private void saveAllProductNetValues(List<ProductNetValue> netValues) {
         // TODO 在使用自增主键时，Hibernate 没法做批量插入
-        productNetValueRepository.saveAll(netValues);
+        // productNetValueRepository.saveAll(netValues);
+
+        if (netValues.isEmpty()) {
+            return;
+        }
+
+        String sql = "insert into t_product_net_value(inner_code, date, value, created_at, updated_at) values (?, ?, ?, ?, ?)";
+
+        jdbcTemplate.batchUpdate(sql, netValues, 1024, (ps, argument) -> {
+            ps.setString(1, argument.getInnerCode());
+            ps.setObject(2, argument.getDate());
+            ps.setBigDecimal(3, argument.getValue());
+            ps.setObject(4, LocalDateTime.now());
+            ps.setObject(5, LocalDateTime.now());
+        });
     }
 
     /**

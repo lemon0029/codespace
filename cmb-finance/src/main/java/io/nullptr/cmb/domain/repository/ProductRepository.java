@@ -13,4 +13,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     Optional<Product> findByInnerCode(String innerCode);
 
     List<Product> findAllByProductTag(String productTag);
+
+    void deleteBySaleCode(String saleCode);
 }
