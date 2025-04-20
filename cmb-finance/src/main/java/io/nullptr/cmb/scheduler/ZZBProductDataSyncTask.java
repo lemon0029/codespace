@@ -5,11 +5,15 @@ import io.nullptr.cmb.client.dto.response.ProductHistoryNetValueQueryResult;
 import io.nullptr.cmb.client.dto.response.ProductListQueryResult;
 import io.nullptr.cmb.domain.Product;
 import io.nullptr.cmb.domain.ProductNetValue;
+import io.nullptr.cmb.domain.event.ProductCreatedEvent;
+import io.nullptr.cmb.domain.event.ProductSaleOutStateChangedEvent;
 import io.nullptr.cmb.domain.repository.ProductNetValueRepository;
 import io.nullptr.cmb.domain.repository.ProductRepository;
 import io.nullptr.cmb.infrastructure.common.Constants;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -18,6 +22,7 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -32,10 +37,13 @@ public class ZZBProductDataSyncTask {
 
     private final ProductNetValueRepository productNetValueRepository;
 
+    private final ApplicationEventPublisher applicationEventPublisher;
+
     /**
      * 更新产品的净值数据（每五分钟执行一次）
      */
-    @Scheduled(fixedDelay = 300_000, initialDelay = 20_000)
+    @Transactional
+    @Scheduled(fixedDelay = 300_000, initialDelay = 2_000)
     public void execute() {
         log.info("Start to execute zzb product data sync task");
         List<Product> products = updateProduct();
@@ -61,7 +69,7 @@ public class ZZBProductDataSyncTask {
             Product product = productRepository.findByInnerCode(innerCode)
                     .orElse(new Product());
 
-            String saleOut = product.getSaleOut();
+            String saleOutState = product.getSaleOut();
 
             product.setProductTag(Constants.ZZB_PRODUCT_TAG);
             product.setSaCode(saCode);
@@ -73,13 +81,20 @@ public class ZZBProductDataSyncTask {
             product.setOffNae(dto.getOffNae());
             productRepository.save(product);
 
-            if (Constants.PRODUCT_SALE_OUT_Y.equals(saleOut) &&
-                    Constants.PRODUCT_SALE_OUT_N.equals(product.getSaleOut())) {
-                // 数据更新后发现这个产品可以被购买
+            if (!Objects.equals(saleOutState, product.getSaleOut())) {
+                ProductSaleOutStateChangedEvent event =
+                        new ProductSaleOutStateChangedEvent(
+                                product.getId(),
+                                product.getSaleCode(),
+                                saleOutState,
+                                product.getSaleOut()
+                        );
+                applicationEventPublisher.publishEvent(event);
             }
 
             if (product.getId() == null) {
-                // TODO 新产品
+                ProductCreatedEvent productCreatedEvent = new ProductCreatedEvent(product.getSaleCode());
+                applicationEventPublisher.publishEvent(productCreatedEvent);
             }
         }
 
