@@ -20,10 +20,32 @@ public class ProductEventListener {
     private final Notifier notifier;
     private final ProductRepository productRepository;
 
+    private static final String BASE_URL = "https://mobile.cmbchina.com/IEntrustFinance/subsidiaryproduct/financedetail.html?XRIPINN=%s&XSAACOD=D07";
+
     @TransactionalEventListener(ProductCreatedEvent.class)
     public void onProductCreated(ProductCreatedEvent event) {
         log.info("Received product created event: {}", event);
-        // TODO 推送企业微信通知
+
+        Product product = productRepository.findByInnerCode(event.saleCode())
+                .orElseThrow();
+
+        notifier.notify(new Notification() {
+
+            @Override
+            public MessageType messageType() {
+                return MessageType.MARKDOWN;
+            }
+
+            @Override
+            public String messageContent() {
+                String url = BASE_URL.formatted(product.getSaleCode());
+
+                return "New product on sale\n" +
+                        "> Code: " + product.getSaleCode() + "\n" +
+                        "> Name: " + product.getShortName() + "\n" +
+                        "\n[View product detail](%s)".formatted(url);
+            }
+        });
     }
 
     @TransactionalEventListener(ProductSaleOutStateChangedEvent.class)
@@ -46,10 +68,12 @@ public class ProductEventListener {
 
             @Override
             public String messageContent() {
+                String url = BASE_URL.formatted(product.getSaleCode());
                 return "Product Sell-Out State Changed\n" +
                         "> Code: " + product.getSaleCode() + "\n" +
                         "> Name: " + product.getShortName() + "\n" +
-                        "> Sell-Out State: %s -> %s".formatted(event.previousSellOutState(), event.currentSellOutSate());
+                        "> Sell-Out State: %s -> %s\n".formatted(event.previousSellOutState(), event.currentSellOutSate()) +
+                        "\n[View product detail](%s)".formatted(url);
             }
         });
     }

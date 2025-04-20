@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -19,37 +20,21 @@ public class ProductDataSyncTask {
     private final ProductDataSyncTaskSupport support;
 
     /**
-     * 定时获取周周宝产品数据（每五分钟执行一次）
+     * 周周宝
      */
     @Transactional
     @Scheduled(fixedDelay = 300_000, initialDelay = 30_000)
     public void updateDataForZZB() throws InterruptedException {
-        log.info("Start to execute zzb product data sync task");
-        List<Product> products = support.updateProduct(Constants.ZZB_PRODUCT_TAG);
-
-        for (Product product : products) {
-            support.updateProductNetValue(product);
-            TimeUnit.SECONDS.sleep(1);
-        }
-
-        log.info("Task finished: zzb product data sync");
+        execute(Constants.ZZB_PRODUCT_TAG);
     }
 
     /**
-     * 定时获取月月宝产品数据（每五分钟执行一次）
+     * 月月宝
      */
     @Transactional
     @Scheduled(fixedDelay = 300_000, initialDelay = 60_000)
     public void updateDataForYYB() throws InterruptedException {
-        log.info("Start to execute yyb product data sync task");
-        List<Product> products = support.updateProduct(Constants.YYB_PRODUCT_TAG);
-
-        for (Product product : products) {
-            support.updateProductNetValue(product);
-            TimeUnit.SECONDS.sleep(1);
-        }
-
-        log.info("Task finished: yyb product data sync");
+        execute(Constants.YYB_PRODUCT_TAG);
     }
 
     /**
@@ -58,15 +43,7 @@ public class ProductDataSyncTask {
     @Transactional
     @Scheduled(fixedDelay = 3600_000, initialDelay = 300_000)
     public void updateDataForJJB() throws InterruptedException {
-        log.info("Start to execute jjb product data sync task");
-        List<Product> products = support.updateProduct(Constants.JJB_PRODUCT_TAG);
-
-        for (Product product : products) {
-            support.updateProductNetValue(product);
-            TimeUnit.SECONDS.sleep(1);
-        }
-
-        log.info("Task finished: jjb product data sync");
+        execute(Constants.JJB_PRODUCT_TAG);
     }
 
     /**
@@ -75,15 +52,7 @@ public class ProductDataSyncTask {
     @Transactional
     @Scheduled(fixedDelay = 3600_000, initialDelay = 360_000)
     public void updateDataForBNB() throws InterruptedException {
-        log.info("Start to execute bnb product data sync task");
-        List<Product> products = support.updateProduct(Constants.BNB_PRODUCT_TAG);
-
-        for (Product product : products) {
-            support.updateProductNetValue(product);
-            TimeUnit.SECONDS.sleep(1);
-        }
-
-        log.info("Task finished: bnb product data sync");
+        execute(Constants.BNB_PRODUCT_TAG);
     }
 
     /**
@@ -92,15 +61,7 @@ public class ProductDataSyncTask {
     @Transactional
     @Scheduled(fixedDelay = 3600_000, initialDelay = 420_000)
     public void updateDataForDYB() throws InterruptedException {
-        log.info("Start to execute dyb product data sync task");
-        List<Product> products = support.updateProduct(Constants.DYB_PRODUCT_TAG);
-
-        for (Product product : products) {
-            support.updateProductNetValue(product);
-            TimeUnit.SECONDS.sleep(1);
-        }
-
-        log.info("Task finished: dyb product data sync");
+        execute(Constants.DYB_PRODUCT_TAG);
     }
 
     /**
@@ -109,14 +70,26 @@ public class ProductDataSyncTask {
     @Transactional
     @Scheduled(fixedDelay = 3600_000, initialDelay = 480_000)
     public void updateDataForDQB() throws InterruptedException {
-        log.info("Start to execute dqb product data sync task");
-        List<Product> products = support.updateProduct(Constants.DQB_PRODUCT_TAG);
+        execute(Constants.DQB_PRODUCT_TAG);
+    }
+
+    private void execute(String productTag) throws InterruptedException {
+
+        LocalDateTime now = LocalDateTime.now();
+
+        // 如果当前时间是在 00:00 ~ 09:00 这个时间段则不更新数据
+        if (now.getHour() < 9) {
+            return;
+        }
+
+        log.info("Start to execute product data sync task, tag: {}", productTag);
+        List<Product> products = support.updateProduct(productTag);
 
         for (Product product : products) {
             support.updateProductNetValue(product);
             TimeUnit.SECONDS.sleep(1);
         }
 
-        log.info("Task finished: dqb product data sync");
+        log.info("Task finished: product[tag={}] data sync", products);
     }
 }
