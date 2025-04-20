@@ -30,6 +30,10 @@ public class ProductEventListener {
     public void onProductSaleOutStateChanged(ProductSaleOutStateChangedEvent event) {
         log.info("Received product sale-out state changed event: {}", event);
 
+        if (event.previousSellOutState() == null) {
+            return;
+        }
+
         Product product = productRepository.findByInnerCode(event.saleCode())
                 .orElseThrow();
 

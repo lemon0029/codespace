@@ -21,7 +21,7 @@ public class ProductDataSyncTask {
      * 定时获取周周宝产品数据（每五分钟执行一次）
      */
     @Transactional
-    @Scheduled(fixedDelay = 300_000, initialDelay = 200_000)
+    @Scheduled(fixedDelay = 300_000, initialDelay = 30_000)
     public void updateDataForZZB() {
         log.info("Start to execute zzb product data sync task");
         List<Product> products = support.updateProduct(Constants.ZZB_PRODUCT_TAG);
@@ -37,7 +37,7 @@ public class ProductDataSyncTask {
      * 定时获取月月宝产品数据（每五分钟执行一次）
      */
     @Transactional
-    @Scheduled(fixedDelay = 300_000, initialDelay = 3_000)
+    @Scheduled(fixedDelay = 300_000, initialDelay = 60_000)
     public void updateDataForYYB() {
         log.info("Start to execute yyb product data sync task");
         List<Product> products = support.updateProduct(Constants.YYB_PRODUCT_TAG);
