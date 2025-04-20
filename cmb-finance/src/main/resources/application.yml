@@ -1,9 +1,27 @@
 spring:
   application:
     name: cmb-fiance
+
   ai:
     mcp:
       server:
         name: cmb-fiance-mcp-server
         version: 1.0.0
         type: SYNC
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/cmb_finance
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    type: com.zaxxer.hikari.HikariDataSource
+
+  jpa:
+    database: mysql
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true

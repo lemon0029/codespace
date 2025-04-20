@@ -1,4 +1,4 @@
-package io.nullptr.cmb.client.dto;
+package io.nullptr.cmb.client;
 
 import io.nullptr.cmb.model.DailyNetValue;
 import io.nullptr.cmb.model.WeeklyYield;

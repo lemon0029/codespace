@@ -1,12 +1,16 @@
 package io.nullptr.cmb;
 
-import io.nullptr.cmb.service.CmbFinanceService;
+import io.nullptr.cmb.service.CmbFinanceMCPToolService;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.tool.method.MethodToolCallbackProvider;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
+@EnableScheduling
+@EnableJpaAuditing
 @SpringBootApplication
 public class CmbFinanceApplication {
 
@@ -15,9 +19,9 @@ public class CmbFinanceApplication {
     }
 
     @Bean
-    public ToolCallbackProvider weatherTools(CmbFinanceService cmbFinanceService) {
+    public ToolCallbackProvider weatherTools(CmbFinanceMCPToolService cmbFinanceMCPToolService) {
         return MethodToolCallbackProvider.builder()
-                .toolObjects(cmbFinanceService)
+                .toolObjects(cmbFinanceMCPToolService)
                 .build();
     }
 }

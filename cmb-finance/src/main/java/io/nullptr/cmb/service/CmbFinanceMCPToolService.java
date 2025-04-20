@@ -1,6 +1,6 @@
 package io.nullptr.cmb.service;
 
-import io.nullptr.cmb.client.dto.CmbMobileClient;
+import io.nullptr.cmb.client.CmbMobileClient;
 import io.nullptr.cmb.client.dto.response.ProductHistoryPerformanceQueryResult;
 import io.nullptr.cmb.client.dto.response.ProductListQueryResult;
 import io.nullptr.cmb.client.dto.response.ProductHistoryNetValueQueryResult;
@@ -20,7 +20,8 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class CmbFinanceService {
+@SuppressWarnings("unused")
+public class CmbFinanceMCPToolService {
 
     private final CmbMobileClient cmbMobileClient;
 

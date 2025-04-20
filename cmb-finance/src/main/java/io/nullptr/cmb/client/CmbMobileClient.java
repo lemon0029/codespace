@@ -1,6 +1,5 @@
-package io.nullptr.cmb.client.dto;
+package io.nullptr.cmb.client;
 
-import io.nullptr.cmb.client.CmbMobileApiService;
 import io.nullptr.cmb.client.dto.request.ProductHistoryYieldOrNetValueQuery;
 import io.nullptr.cmb.client.dto.request.ProductNetValueQuery;
 import io.nullptr.cmb.client.dto.response.ProductHistoryNetValueQueryResult;
