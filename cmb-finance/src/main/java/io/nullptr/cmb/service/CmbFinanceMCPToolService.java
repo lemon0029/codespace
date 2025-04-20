@@ -35,7 +35,7 @@ public class CmbFinanceMCPToolService {
 
         StringBuilder builder = new StringBuilder();
 
-        ProductListQueryResult result = cmbMobileClient.queryProductList(7);
+        ProductListQueryResult result = cmbMobileClient.queryProductList("7");
         List<ProductListQueryResult.ProductDetail> productList = result.getProductDetailList();
 
         for (ProductListQueryResult.ProductDetail productDetail : productList) {

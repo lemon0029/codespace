@@ -7,6 +7,7 @@ import io.nullptr.cmb.domain.Product;
 import io.nullptr.cmb.domain.ProductNetValue;
 import io.nullptr.cmb.domain.repository.ProductNetValueRepository;
 import io.nullptr.cmb.domain.repository.ProductRepository;
+import io.nullptr.cmb.infrastructure.common.Constants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -17,7 +18,6 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -31,8 +31,6 @@ public class ZZBProductDataSyncTask {
     private final ProductRepository productRepository;
 
     private final ProductNetValueRepository productNetValueRepository;
-
-    private static final Integer PRODUCT_TAG = 7;
 
     /**
      * 更新产品的净值数据（每五分钟执行一次）
@@ -53,32 +51,39 @@ public class ZZBProductDataSyncTask {
      * 更新产品列表
      */
     private List<Product> updateProduct() {
-        ProductListQueryResult productListQueryResult = cmbMobileClient.queryProductList(PRODUCT_TAG);
+        ProductListQueryResult productListQueryResult = cmbMobileClient.queryProductList(Constants.ZZB_PRODUCT_TAG);
         List<ProductListQueryResult.ProductDetail> productDetailList = productListQueryResult.getProductDetailList();
 
         for (ProductListQueryResult.ProductDetail dto : productDetailList) {
             String saCode = dto.getSaCode();
             String innerCode = dto.getInnerCode();
 
-            Optional<Product> product = productRepository.findByInnerCode(innerCode);
+            Product product = productRepository.findByInnerCode(innerCode)
+                    .orElse(new Product());
 
-            if (product.isEmpty()) {
-                Product newProduct = new Product();
-                newProduct.setProductTag(PRODUCT_TAG);
-                newProduct.setSaCode(saCode);
-                newProduct.setShortName(dto.getShortName());
-                newProduct.setInnerCode(innerCode);
-                productRepository.save(newProduct);
+            String saleOut = product.getSaleOut();
 
-                log.info("Found new product: {}", newProduct);
-                // TODO 发现新产品事件通知
+            product.setProductTag(Constants.ZZB_PRODUCT_TAG);
+            product.setSaCode(saCode);
+            product.setShortName(dto.getShortName());
+            product.setInnerCode(innerCode);
+            product.setSaleCode(dto.getSaleCode());
+            product.setSaleOut(dto.getSaleOut());
+            product.setRiskType(dto.getRiskType());
+            product.setOffNae(dto.getOffNae());
+            productRepository.save(product);
+
+            if (Constants.PRODUCT_SALE_OUT_Y.equals(saleOut) &&
+                    Constants.PRODUCT_SALE_OUT_N.equals(product.getSaleOut())) {
+                // 数据更新后发现这个产品可以被购买
             }
 
-            // TODO 更新其它字段数据
-            // TODO 删除不属于周周宝系列的产品？
+            if (product.getId() == null) {
+                // TODO 新产品
+            }
         }
 
-        return productRepository.findAllByProductTag(PRODUCT_TAG);
+        return productRepository.findAllByProductTag(Constants.ZZB_PRODUCT_TAG);
     }
 
     /**

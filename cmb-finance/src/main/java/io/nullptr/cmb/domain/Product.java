@@ -2,14 +2,16 @@ package io.nullptr.cmb.domain;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.DynamicUpdate;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
 
 @Data
 @Entity(name = "t_product")
+@DynamicUpdate
 @EntityListeners(AuditingEntityListener.class)
 public class Product {
 
@@ -17,7 +19,10 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Integer productTag;
+    @Column(nullable = false, length = 7)
+    private String productTag;
+
+    private String offNae;
 
     private String shortName;
 
@@ -26,9 +31,24 @@ public class Product {
     @Column(unique = true, length = 127)
     private String innerCode;
 
-    @CreationTimestamp
+    @Column(unique = true, length = 127)
+    private String saleCode;
+
+    /**
+     * 是否已售罄 (Y/N)
+     */
+    @Column(length = 7, nullable = false)
+    private String saleOut;
+
+    /**
+     * 稳健低波 - A, 稳健增值 - B, 稳中求进 - C
+     */
+    @Column(length = 7, nullable = false)
+    private String riskType;
+
+    @CreatedDate
     private LocalDateTime createdAt;
 
-    @UpdateTimestamp
+    @LastModifiedDate
     private LocalDateTime updatedAt;
 }

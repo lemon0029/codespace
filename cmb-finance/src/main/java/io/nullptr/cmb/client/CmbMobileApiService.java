@@ -26,7 +26,7 @@ public interface CmbMobileApiService {
      */
     @GetExchange("/iextef/cp-product-list/get-products")
     ResponseWrapper<ProductListQueryResult> getProducts(@RequestParam("riskType") String riskType,
-                                                        @RequestParam("productTag") Integer productTag);
+                                                        @RequestParam("productTag") String productTag);
 
     /**
      * 获取产品的历史业绩
@@ -42,7 +42,7 @@ public interface CmbMobileApiService {
     ResponseWrapper<ProductHistoryNetValueQueryResult> getHistoryNetValue(@RequestBody ProductNetValueQuery query);
 
     /**
-     *获取产品的历史每周收益和净值
+     * 获取产品的历史每周收益和净值
      */
     @PostExchange("/ientrustfinance/sa-finance-detail/label-descript")
     ResponseWrapper<Map<String, List<ProductHistoryYieldOrNetValueResult>>> getHistoryYieldOrNetValue(@RequestBody ProductHistoryYieldOrNetValueQuery query);

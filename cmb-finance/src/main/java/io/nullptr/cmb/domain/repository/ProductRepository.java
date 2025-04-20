@@ -12,5 +12,5 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     Optional<Product> findByInnerCode(String innerCode);
 
-    List<Product> findAllByProductTag(Integer productTag);
+    List<Product> findAllByProductTag(String productTag);
 }

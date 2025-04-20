@@ -33,7 +33,7 @@ public class CmbMobileClient {
 
     private final CmbMobileApiService service = factory.createClient(CmbMobileApiService.class);
 
-    public ProductListQueryResult queryProductList(Integer productTag) {
+    public ProductListQueryResult queryProductList(String productTag) {
         ResponseWrapper<ProductListQueryResult> responseWrapper = service.getProducts("", productTag);
         BizResult<ProductListQueryResult> bizResult = responseWrapper.getBizResult();
 
