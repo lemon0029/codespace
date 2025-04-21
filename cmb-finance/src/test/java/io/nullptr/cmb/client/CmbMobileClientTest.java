@@ -1,5 +1,7 @@
 package io.nullptr.cmb.client;
 
+import io.nullptr.cmb.client.dto.response.ProductBCDListDTO;
+import io.nullptr.cmb.domain.ProductRiskType;
 import io.nullptr.cmb.model.DailyNetValue;
 import io.nullptr.cmb.model.WeeklyYield;
 import org.junit.jupiter.api.Assertions;
@@ -15,6 +17,13 @@ class CmbMobileClientTest {
 
     @Autowired
     private CmbMobileClient cmbMobileClient;
+
+    @Test
+    void queryFinanceProduct() {
+        List<ProductBCDListDTO> items = cmbMobileClient.queryFinanceProduct(ProductRiskType.STEADY_LOW_VOLATILITY, 1);
+        Assertions.assertNotNull(items);
+        Assertions.assertFalse(items.isEmpty());
+    }
 
     @Test
     void queryProductLabelChart() {

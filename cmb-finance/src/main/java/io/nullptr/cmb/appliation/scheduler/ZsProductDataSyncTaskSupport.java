@@ -6,7 +6,7 @@ import io.nullptr.cmb.client.dto.response.ProductQueryByTagResult;
 import io.nullptr.cmb.domain.Product;
 import io.nullptr.cmb.domain.ProductNetValue;
 import io.nullptr.cmb.domain.event.ProductCreatedEvent;
-import io.nullptr.cmb.domain.event.ProductSaleOutStateChangedEvent;
+import io.nullptr.cmb.domain.event.ProductSellOutStateChangedEvent;
 import io.nullptr.cmb.domain.repository.ProductNetValueRepository;
 import io.nullptr.cmb.domain.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -69,27 +69,27 @@ public class ZsProductDataSyncTaskSupport {
                     .orElse(new Product());
 
             boolean newProduct = product.getId() == null;
-            String saleOutState = product.getSaleOut();
+            String sellOutState = product.getSellOut();
 
             product.setProductTag(productTag);
             product.setSaCode(saCode);
             product.setShortName(dto.getShortName());
             product.setInnerCode(innerCode);
             product.setSaleCode(dto.getSaleCode());
-            product.setSaleOut(dto.getSaleOut());
+            product.setSellOut(dto.getSaleOut());
             product.setRiskType(dto.getRiskType());
             product.setOffNae(dto.getOffNae());
             productRepository.save(product);
 
-            if (saleOutState != null && !Objects.equals(saleOutState, product.getSaleOut())) {
+            if (sellOutState != null && !Objects.equals(sellOutState, product.getSellOut())) {
                 // TODO 售罄状态更新时间需要一个单独的字段
                 Duration duration = Duration.between(product.getUpdatedAt(), LocalDateTime.now());
-                ProductSaleOutStateChangedEvent event =
-                        new ProductSaleOutStateChangedEvent(
+                ProductSellOutStateChangedEvent event =
+                        new ProductSellOutStateChangedEvent(
                                 product.getId(),
                                 product.getSaleCode(),
-                                saleOutState,
-                                product.getSaleOut(),
+                                sellOutState,
+                                product.getSellOut(),
                                 duration
                         );
                 applicationEventPublisher.publishEvent(event);

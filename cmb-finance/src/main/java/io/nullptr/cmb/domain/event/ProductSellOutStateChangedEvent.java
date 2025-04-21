@@ -4,7 +4,7 @@ import org.jmolecules.event.types.DomainEvent;
 
 import java.time.Duration;
 
-public record ProductSaleOutStateChangedEvent(
+public record ProductSellOutStateChangedEvent(
         Long productId,
         String saleCode,
         String previousSellOutState,

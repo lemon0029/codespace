@@ -25,3 +25,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+data-sync-task:
+  zs-tags: [ ]
+  risk-types: [ steady_low_volatility, steady_growth, balanced_advance ]

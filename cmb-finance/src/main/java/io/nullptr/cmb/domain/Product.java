@@ -38,13 +38,20 @@ public class Product {
      * 是否已售罄 (Y/N)
      */
     @Column(length = 7, nullable = false)
-    private String saleOut;
+    private String sellOut;
 
     /**
      * 稳健低波 - A, 稳健增值 - B, 稳中求进 - C
      */
     @Column(length = 7, nullable = false)
     private String riskType;
+
+    private String riskLevel;
+
+    /**
+     * 可购额度？
+     */
+    private String quota;
 
     @CreatedDate
     private LocalDateTime createdAt;

@@ -34,18 +34,20 @@ public class CmbMobileClient {
 
     private final CmbMobileApiService service = factory.createClient(CmbMobileApiService.class);
 
-    public List<ProductBCDListItemDTO> queryBCDProduct(ProductRiskType riskType) {
-        return queryBCDProduct(riskType, 100);
+    public List<ProductBCDListDTO> queryFinanceProduct(ProductRiskType riskType) {
+        return queryFinanceProduct(riskType, 50);
     }
 
-    public List<ProductBCDListItemDTO> queryBCDProduct(ProductRiskType riskType, Integer pageLimit) {
+    public List<ProductBCDListDTO> queryFinanceProduct(ProductRiskType riskType, Integer pageLimit) {
         ProductBCDListQuery query = new ProductBCDListQuery();
         query.setPrdTyp(riskType.getCode());
         query.setTimTmp(System.currentTimeMillis());
 
         int pageCount = 0;
 
-        List<ProductBCDListItemDTO> result = new ArrayList<>();
+        List<ProductBCDListDTO> result = new ArrayList<>();
+
+        log.info("Start to query finance product, query: {}", query);
 
         while (true) {
             var responseWrapper = service.queryBCDProductList(query);
@@ -71,6 +73,8 @@ public class CmbMobileClient {
             pageCount++;
 
             result.addAll(queryResult.getPrdList());
+
+            log.info("Query fiance product success, page: {}/{}, result: {}", pageCount, pageLimit, queryResult.getPrdList());
 
             query.setYDalCod(queryResult.getYDalCod());
             query.setYPagCnt(queryResult.getYPagCnt());

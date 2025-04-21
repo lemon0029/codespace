@@ -14,5 +14,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     List<Product> findAllByProductTag(String productTag);
 
+    List<Product> findAllByRiskType(String riskType);
+
     void deleteBySaleCode(String saleCode);
 }

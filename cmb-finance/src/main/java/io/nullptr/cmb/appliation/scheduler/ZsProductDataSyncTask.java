@@ -19,7 +19,7 @@ public class ZsProductDataSyncTask {
 
     private final ZsProductDataSyncTaskSupport support;
 
-    private final SchedulerProperties schedulerProperties;
+    private final DataSyncTaskProperties dataSyncTaskProperties;
 
     /**
      * 周周宝
@@ -34,7 +34,7 @@ public class ZsProductDataSyncTask {
      * 月月宝
      */
     @Transactional
-    @Scheduled(fixedDelay = 300_000, initialDelay = 60_000)
+    @Scheduled(fixedDelay = 600_000, initialDelay = 60_000)
     public void updateDataForYYB() throws InterruptedException {
         execute(ProductZsTag.YYB);
     }
@@ -43,7 +43,7 @@ public class ZsProductDataSyncTask {
      * 季季宝
      */
     @Transactional
-    @Scheduled(fixedDelay = 3600_000, initialDelay = 300_000)
+    @Scheduled(fixedDelay = 43200_000, initialDelay = 300_000)
     public void updateDataForJJB() throws InterruptedException {
         execute(ProductZsTag.JJB);
     }
@@ -52,7 +52,7 @@ public class ZsProductDataSyncTask {
      * 半年宝
      */
     @Transactional
-    @Scheduled(fixedDelay = 3600_000, initialDelay = 360_000)
+    @Scheduled(fixedDelay = 43200_000, initialDelay = 360_000)
     public void updateDataForBNB() throws InterruptedException {
         execute(ProductZsTag.BNB);
     }
@@ -61,7 +61,7 @@ public class ZsProductDataSyncTask {
      * 多月宝
      */
     @Transactional
-    @Scheduled(fixedDelay = 3600_000, initialDelay = 420_000)
+    @Scheduled(fixedDelay = 43200_000, initialDelay = 420_000)
     public void updateDataForDYB() throws InterruptedException {
         execute(ProductZsTag.DYB);
     }
@@ -70,15 +70,15 @@ public class ZsProductDataSyncTask {
      * 定期宝
      */
     @Transactional
-    @Scheduled(fixedDelay = 3600_000, initialDelay = 480_000)
+    @Scheduled(fixedDelay = 43200_000, initialDelay = 480_000)
     public void updateDataForDQB() throws InterruptedException {
         execute(ProductZsTag.DQB);
     }
 
     private void execute(ProductZsTag productZsTag) throws InterruptedException {
 
-        if (schedulerProperties.getDataSyncEnabled() == null ||
-                !schedulerProperties.getDataSyncEnabled().contains(productZsTag)) {
+        List<ProductZsTag> zsTags = dataSyncTaskProperties.getZsTags();
+        if (zsTags == null || !zsTags.contains(productZsTag)) {
             return;
         }
 
@@ -92,6 +92,7 @@ public class ZsProductDataSyncTask {
         log.info("Start to execute product data sync task, tag: {}", productZsTag);
         List<Product> products = support.updateProduct(productZsTag.getCode());
 
+        // TODO 净值应该要到 15:30 之后才会更新吧？
         for (Product product : products) {
             support.updateProductNetValue(product);
             TimeUnit.SECONDS.sleep(1);
