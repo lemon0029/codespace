@@ -1,11 +1,12 @@
 package io.nullptr.cmb.client;
 
 import io.nullptr.cmb.client.dto.request.ProductHistoryYieldOrNetValueQuery;
+import io.nullptr.cmb.client.dto.request.ProductBCDListQuery;
 import io.nullptr.cmb.client.dto.request.ProductNetValueQuery;
 import io.nullptr.cmb.client.dto.response.ProductHistoryNetValueQueryResult;
 import io.nullptr.cmb.client.dto.response.ProductHistoryPerformanceQueryResult;
 import io.nullptr.cmb.client.dto.response.ProductHistoryYieldOrNetValueResult;
-import io.nullptr.cmb.client.dto.response.ProductListQueryResult;
+import io.nullptr.cmb.client.dto.response.ProductQueryByTagResult;
 import io.nullptr.cmb.client.dto.response.base.ResponseWrapper;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -18,15 +19,21 @@ import java.util.Map;
 public interface CmbMobileApiService {
 
     /**
-     * 获取产品列表
+     * 根据标签查询产品（仅限于周周宝、月月宝这些产品）
      *
      * @param riskType   风险类型
      * @param productTag 产品标签
      * @return 产品列表
      */
     @GetExchange("/iextef/cp-product-list/get-products")
-    ResponseWrapper<ProductListQueryResult> getProducts(@RequestParam("riskType") String riskType,
-                                                        @RequestParam("productTag") String productTag);
+    ResponseWrapper<ProductQueryByTagResult> queryProductByTag(@RequestParam("riskType") String riskType,
+                                                               @RequestParam("productTag") String productTag);
+
+    /**
+     * 根据风险类型查询产品（所有理财产品）
+     */
+    @PostExchange("/ientrustfinance/financelist/bcdlist")
+    ResponseWrapper<Object> queryProduct(@RequestBody ProductBCDListQuery query);
 
     /**
      * 获取产品的历史业绩

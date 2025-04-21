@@ -1,13 +1,15 @@
 package io.nullptr.cmb.client;
 
+import io.nullptr.cmb.client.dto.request.ProductBCDListQuery;
 import io.nullptr.cmb.client.dto.request.ProductHistoryYieldOrNetValueQuery;
 import io.nullptr.cmb.client.dto.request.ProductNetValueQuery;
 import io.nullptr.cmb.client.dto.response.ProductHistoryNetValueQueryResult;
 import io.nullptr.cmb.client.dto.response.ProductHistoryPerformanceQueryResult;
 import io.nullptr.cmb.client.dto.response.ProductHistoryYieldOrNetValueResult;
-import io.nullptr.cmb.client.dto.response.ProductListQueryResult;
+import io.nullptr.cmb.client.dto.response.ProductQueryByTagResult;
 import io.nullptr.cmb.client.dto.response.base.BizResult;
 import io.nullptr.cmb.client.dto.response.base.ResponseWrapper;
+import io.nullptr.cmb.domain.ProductRiskType;
 import io.nullptr.cmb.model.DailyNetValue;
 import io.nullptr.cmb.model.WeeklyYield;
 import org.springframework.data.util.Pair;
@@ -33,9 +35,17 @@ public class CmbMobileClient {
 
     private final CmbMobileApiService service = factory.createClient(CmbMobileApiService.class);
 
-    public ProductListQueryResult queryProductList(String productTag) {
-        ResponseWrapper<ProductListQueryResult> responseWrapper = service.getProducts("", productTag);
-        BizResult<ProductListQueryResult> bizResult = responseWrapper.getBizResult();
+    public void queryProduct() {
+        ProductBCDListQuery productBCDListQuery = new ProductBCDListQuery();
+        productBCDListQuery.setPrdTyp(ProductRiskType.STEADY_LOW_VOLATILITY.getCode());
+
+        ResponseWrapper<Object> objectResponseWrapper = service.queryProduct(productBCDListQuery);
+        System.out.println(objectResponseWrapper);
+    }
+
+    public ProductQueryByTagResult queryProductByTag(String productTag) {
+        ResponseWrapper<ProductQueryByTagResult> responseWrapper = service.queryProductByTag("", productTag);
+        BizResult<ProductQueryByTagResult> bizResult = responseWrapper.getBizResult();
 
         return Optional.ofNullable(bizResult)
                 .map(BizResult::getData)

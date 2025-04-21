@@ -5,7 +5,7 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class ProductListQueryResult {
+public class ProductQueryByTagResult {
     private String productType;
     private String riskType;
 

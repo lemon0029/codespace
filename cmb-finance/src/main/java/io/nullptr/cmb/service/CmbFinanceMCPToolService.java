@@ -2,7 +2,7 @@ package io.nullptr.cmb.service;
 
 import io.nullptr.cmb.client.CmbMobileClient;
 import io.nullptr.cmb.client.dto.response.ProductHistoryPerformanceQueryResult;
-import io.nullptr.cmb.client.dto.response.ProductListQueryResult;
+import io.nullptr.cmb.client.dto.response.ProductQueryByTagResult;
 import io.nullptr.cmb.client.dto.response.ProductHistoryNetValueQueryResult;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.tool.annotation.Tool;
@@ -35,10 +35,10 @@ public class CmbFinanceMCPToolService {
 
         StringBuilder builder = new StringBuilder();
 
-        ProductListQueryResult result = cmbMobileClient.queryProductList("7");
-        List<ProductListQueryResult.ProductDetail> productList = result.getProductDetailList();
+        ProductQueryByTagResult result = cmbMobileClient.queryProductByTag("7");
+        List<ProductQueryByTagResult.ProductDetail> productList = result.getProductDetailList();
 
-        for (ProductListQueryResult.ProductDetail productDetail : productList) {
+        for (ProductQueryByTagResult.ProductDetail productDetail : productList) {
             String saCode = productDetail.getSaCode();
             String innerCode = productDetail.getInnerCode();
             ProductHistoryPerformanceQueryResult result1 = cmbMobileClient.queryHistoryPerformance(saCode, innerCode);

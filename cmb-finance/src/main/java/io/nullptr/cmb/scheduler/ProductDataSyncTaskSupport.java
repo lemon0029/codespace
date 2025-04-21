@@ -2,7 +2,7 @@ package io.nullptr.cmb.scheduler;
 
 import io.nullptr.cmb.client.CmbMobileClient;
 import io.nullptr.cmb.client.dto.response.ProductHistoryNetValueQueryResult;
-import io.nullptr.cmb.client.dto.response.ProductListQueryResult;
+import io.nullptr.cmb.client.dto.response.ProductQueryByTagResult;
 import io.nullptr.cmb.domain.Product;
 import io.nullptr.cmb.domain.ProductNetValue;
 import io.nullptr.cmb.domain.event.ProductCreatedEvent;
@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -48,10 +49,10 @@ public class ProductDataSyncTaskSupport {
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public List<Product> updateProduct(String productTag) {
-        ProductListQueryResult productListQueryResult = cmbMobileClient.queryProductList(productTag);
-        List<ProductListQueryResult.ProductDetail> productDetailList = productListQueryResult.getProductDetailList();
+        ProductQueryByTagResult productQueryByTagResult = cmbMobileClient.queryProductByTag(productTag);
+        List<ProductQueryByTagResult.ProductDetail> productDetailList = productQueryByTagResult.getProductDetailList();
 
-        for (ProductListQueryResult.ProductDetail dto : productDetailList) {
+        for (ProductQueryByTagResult.ProductDetail dto : productDetailList) {
             String saCode = dto.getSaCode();
             String innerCode = dto.getInnerCode();
 
@@ -81,12 +82,15 @@ public class ProductDataSyncTaskSupport {
             productRepository.save(product);
 
             if (saleOutState != null && !Objects.equals(saleOutState, product.getSaleOut())) {
+                // TODO 售罄状态更新时间需要一个单独的字段
+                Duration duration = Duration.between(product.getUpdatedAt(), LocalDateTime.now());
                 ProductSaleOutStateChangedEvent event =
                         new ProductSaleOutStateChangedEvent(
                                 product.getId(),
                                 product.getSaleCode(),
                                 saleOutState,
-                                product.getSaleOut()
+                                product.getSaleOut(),
+                                duration
                         );
                 applicationEventPublisher.publishEvent(event);
             }
@@ -191,12 +195,12 @@ public class ProductDataSyncTaskSupport {
         // 需要获取近一个月的数据即可
         if (days < 25) {
             return "A";
-        } else
+        }
 
-            // 需要获取近三个月的数据
-            if (days < 80) {
-                return "B";
-            }
+        // 需要获取近三个月的数据
+        if (days < 80) {
+            return "B";
+        }
 
         // 需要获取近一年的数据
         if (days < 300) {

@@ -1,7 +1,7 @@
 package io.nullptr.cmb.scheduler;
 
 import io.nullptr.cmb.domain.Product;
-import io.nullptr.cmb.infrastructure.common.Constants;
+import io.nullptr.cmb.domain.ProductZsTag;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +25,7 @@ public class ProductDataSyncTask {
     @Transactional
     @Scheduled(fixedDelay = 300_000, initialDelay = 30_000)
     public void updateDataForZZB() throws InterruptedException {
-        execute(Constants.ZZB_PRODUCT_TAG);
+        execute(ProductZsTag.ZZB);
     }
 
     /**
@@ -34,7 +34,7 @@ public class ProductDataSyncTask {
     @Transactional
     @Scheduled(fixedDelay = 300_000, initialDelay = 60_000)
     public void updateDataForYYB() throws InterruptedException {
-        execute(Constants.YYB_PRODUCT_TAG);
+        execute(ProductZsTag.YYB);
     }
 
     /**
@@ -43,7 +43,7 @@ public class ProductDataSyncTask {
     @Transactional
     @Scheduled(fixedDelay = 3600_000, initialDelay = 300_000)
     public void updateDataForJJB() throws InterruptedException {
-        execute(Constants.JJB_PRODUCT_TAG);
+        execute(ProductZsTag.JJB);
     }
 
     /**
@@ -52,7 +52,7 @@ public class ProductDataSyncTask {
     @Transactional
     @Scheduled(fixedDelay = 3600_000, initialDelay = 360_000)
     public void updateDataForBNB() throws InterruptedException {
-        execute(Constants.BNB_PRODUCT_TAG);
+        execute(ProductZsTag.BNB);
     }
 
     /**
@@ -61,7 +61,7 @@ public class ProductDataSyncTask {
     @Transactional
     @Scheduled(fixedDelay = 3600_000, initialDelay = 420_000)
     public void updateDataForDYB() throws InterruptedException {
-        execute(Constants.DYB_PRODUCT_TAG);
+        execute(ProductZsTag.DYB);
     }
 
     /**
@@ -70,10 +70,10 @@ public class ProductDataSyncTask {
     @Transactional
     @Scheduled(fixedDelay = 3600_000, initialDelay = 480_000)
     public void updateDataForDQB() throws InterruptedException {
-        execute(Constants.DQB_PRODUCT_TAG);
+        execute(ProductZsTag.DQB);
     }
 
-    private void execute(String productTag) throws InterruptedException {
+    private void execute(ProductZsTag productZsTag) throws InterruptedException {
 
         LocalDateTime now = LocalDateTime.now();
 
@@ -82,8 +82,8 @@ public class ProductDataSyncTask {
             return;
         }
 
-        log.info("Start to execute product data sync task, tag: {}", productTag);
-        List<Product> products = support.updateProduct(productTag);
+        log.info("Start to execute product data sync task, tag: {}", productZsTag);
+        List<Product> products = support.updateProduct(productZsTag.getCode());
 
         for (Product product : products) {
             support.updateProductNetValue(product);
