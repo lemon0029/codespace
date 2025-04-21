@@ -3,26 +3,25 @@ package io.nullptr.cmb.client;
 import io.nullptr.cmb.client.dto.request.ProductBCDListQuery;
 import io.nullptr.cmb.client.dto.request.ProductHistoryYieldOrNetValueQuery;
 import io.nullptr.cmb.client.dto.request.ProductNetValueQuery;
-import io.nullptr.cmb.client.dto.response.ProductHistoryNetValueQueryResult;
-import io.nullptr.cmb.client.dto.response.ProductHistoryPerformanceQueryResult;
-import io.nullptr.cmb.client.dto.response.ProductHistoryYieldOrNetValueResult;
-import io.nullptr.cmb.client.dto.response.ProductQueryByTagResult;
+import io.nullptr.cmb.client.dto.response.*;
 import io.nullptr.cmb.client.dto.response.base.BizResult;
 import io.nullptr.cmb.client.dto.response.base.ResponseWrapper;
 import io.nullptr.cmb.domain.ProductRiskType;
 import io.nullptr.cmb.model.DailyNetValue;
 import io.nullptr.cmb.model.WeeklyYield;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.support.RestClientAdapter;
 import org.springframework.web.service.invoker.HttpServiceProxyFactory;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @Component
 public class CmbMobileClient {
 
@@ -35,12 +34,68 @@ public class CmbMobileClient {
 
     private final CmbMobileApiService service = factory.createClient(CmbMobileApiService.class);
 
-    public void queryProduct() {
-        ProductBCDListQuery productBCDListQuery = new ProductBCDListQuery();
-        productBCDListQuery.setPrdTyp(ProductRiskType.STEADY_LOW_VOLATILITY.getCode());
+    public List<ProductBCDListItemDTO> queryBCDProduct(ProductRiskType riskType) {
+        return queryBCDProduct(riskType, 100);
+    }
 
-        ResponseWrapper<Object> objectResponseWrapper = service.queryProduct(productBCDListQuery);
-        System.out.println(objectResponseWrapper);
+    public List<ProductBCDListItemDTO> queryBCDProduct(ProductRiskType riskType, Integer pageLimit) {
+        ProductBCDListQuery query = new ProductBCDListQuery();
+        query.setPrdTyp(riskType.getCode());
+        query.setTimTmp(System.currentTimeMillis());
+
+        int pageCount = 0;
+
+        List<ProductBCDListItemDTO> result = new ArrayList<>();
+
+        while (true) {
+            var responseWrapper = service.queryBCDProductList(query);
+
+            var sysCode = responseWrapper.getSysCode();
+            var sysMsg = responseWrapper.getSysMsg();
+
+            if (!"Success".equals(sysMsg) || !Objects.equals(1014, sysCode)) {
+                log.warn("Failed to query product bcd list, params: {}, response: {}", query, responseWrapper);
+                break;
+            }
+
+            var bizResult = responseWrapper.getBizResult();
+
+            Integer code = bizResult.getCode();
+            ProductBCDListQueryResult queryResult = bizResult.getData();
+
+            if (!Objects.equals(code, 200) || queryResult == null || CollectionUtils.isEmpty(queryResult.getPrdList())) {
+                log.warn("Failed to query product bcd list, params: {}, result: {}", query, queryResult);
+                break;
+            }
+
+            pageCount++;
+
+            result.addAll(queryResult.getPrdList());
+
+            query.setYDalCod(queryResult.getYDalCod());
+            query.setYPagCnt(queryResult.getYPagCnt());
+            query.setYRipCod(queryResult.getYRipCod());
+            query.setYSaaCod(queryResult.getYSaaCod());
+            query.setTimTmp(queryResult.getTimTmp());
+
+            if (!StringUtils.hasText(query.getYRipCod())) {
+                // 没有下一页了，停止循环
+                break;
+            }
+
+            if (pageLimit != null && pageCount >= pageLimit) {
+                // 达到分页请求限制了，通常是为了避免死循环请求
+                break;
+            }
+
+            try {
+                TimeUnit.MILLISECONDS.sleep(500);
+            } catch (InterruptedException ignored) {
+            }
+        }
+
+        log.info("Finished to query bcd product list, page count: {}, total product: {}", pageCount, result.size());
+        return result;
     }
 
     public ProductQueryByTagResult queryProductByTag(String productTag) {

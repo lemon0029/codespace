@@ -3,10 +3,7 @@ package io.nullptr.cmb.client;
 import io.nullptr.cmb.client.dto.request.ProductHistoryYieldOrNetValueQuery;
 import io.nullptr.cmb.client.dto.request.ProductBCDListQuery;
 import io.nullptr.cmb.client.dto.request.ProductNetValueQuery;
-import io.nullptr.cmb.client.dto.response.ProductHistoryNetValueQueryResult;
-import io.nullptr.cmb.client.dto.response.ProductHistoryPerformanceQueryResult;
-import io.nullptr.cmb.client.dto.response.ProductHistoryYieldOrNetValueResult;
-import io.nullptr.cmb.client.dto.response.ProductQueryByTagResult;
+import io.nullptr.cmb.client.dto.response.*;
 import io.nullptr.cmb.client.dto.response.base.ResponseWrapper;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -30,10 +27,10 @@ public interface CmbMobileApiService {
                                                                @RequestParam("productTag") String productTag);
 
     /**
-     * 根据风险类型查询产品（所有理财产品）
+     * 根据风险类型查询产品
      */
     @PostExchange("/ientrustfinance/financelist/bcdlist")
-    ResponseWrapper<Object> queryProduct(@RequestBody ProductBCDListQuery query);
+    ResponseWrapper<ProductBCDListQueryResult> queryBCDProductList(@RequestBody ProductBCDListQuery query);
 
     /**
      * 获取产品的历史业绩

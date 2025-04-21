@@ -1,6 +1,5 @@
-package io.nullptr.cmb.listener;
+package io.nullptr.cmb.appliation.listener;
 
-import io.modelcontextprotocol.spec.McpSchema;
 import io.nullptr.cmb.domain.Product;
 import io.nullptr.cmb.domain.ProductZsTag;
 import io.nullptr.cmb.domain.event.ProductCreatedEvent;
@@ -26,7 +25,6 @@ public class ProductEventListener {
     private final ProductRepository productRepository;
 
     private static final String BASE_URL = "https://mobile.cmbchina.com/IEntrustFinance/subsidiaryproduct/financedetail.html?XRIPINN=%s&XSAACOD=D07";
-    private final McpSchema.ServerCapabilities.Builder builder;
 
     @TransactionalEventListener(ProductCreatedEvent.class)
     public void onProductCreated(ProductCreatedEvent event) {

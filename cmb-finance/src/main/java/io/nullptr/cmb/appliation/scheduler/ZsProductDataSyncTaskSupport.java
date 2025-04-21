@@ -1,4 +1,4 @@
-package io.nullptr.cmb.scheduler;
+package io.nullptr.cmb.appliation.scheduler;
 
 import io.nullptr.cmb.client.CmbMobileClient;
 import io.nullptr.cmb.client.dto.response.ProductHistoryNetValueQueryResult;
@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ProductDataSyncTaskSupport {
+public class ZsProductDataSyncTaskSupport {
 
     private final CmbMobileClient cmbMobileClient;
 

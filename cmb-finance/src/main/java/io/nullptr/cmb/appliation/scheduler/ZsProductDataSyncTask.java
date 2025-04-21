@@ -1,4 +1,4 @@
-package io.nullptr.cmb.scheduler;
+package io.nullptr.cmb.appliation.scheduler;
 
 import io.nullptr.cmb.domain.Product;
 import io.nullptr.cmb.domain.ProductZsTag;
@@ -15,9 +15,11 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ProductDataSyncTask {
+public class ZsProductDataSyncTask {
 
-    private final ProductDataSyncTaskSupport support;
+    private final ZsProductDataSyncTaskSupport support;
+
+    private final SchedulerProperties schedulerProperties;
 
     /**
      * 周周宝
@@ -74,6 +76,11 @@ public class ProductDataSyncTask {
     }
 
     private void execute(ProductZsTag productZsTag) throws InterruptedException {
+
+        if (schedulerProperties.getDataSyncEnabled() == null ||
+                !schedulerProperties.getDataSyncEnabled().contains(productZsTag)) {
+            return;
+        }
 
         LocalDateTime now = LocalDateTime.now();
 
