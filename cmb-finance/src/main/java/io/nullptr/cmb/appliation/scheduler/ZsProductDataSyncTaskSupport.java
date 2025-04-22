@@ -48,7 +48,15 @@ public class ZsProductDataSyncTaskSupport {
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public List<Product> updateProduct(ProductRiskType riskType, String productTag) {
-        ProductQueryByTagResult queryResult = cmbMobileClient.queryProductByRiskTypeAndTag(riskType.getCode(), productTag);
+
+        // 周周宝系列产品的接口是 A, B, C... 这里需要处理下
+        String mappingRiskType = switch (riskType) {
+            case BALANCED_ADVANCE -> "C";
+            case STEADY_GROWTH -> "B";
+            case STEADY_LOW_VOLATILITY -> "A";
+        };
+
+        ProductQueryByTagResult queryResult = cmbMobileClient.queryProductByRiskTypeAndTag(mappingRiskType, productTag);
 
         if (queryResult == null || CollectionUtils.isEmpty(queryResult.getProductDetailList())) {
             return Collections.emptyList();
@@ -81,7 +89,7 @@ public class ZsProductDataSyncTaskSupport {
             product.setInnerCode(innerCode);
             product.setSaleCode(dto.getSaleCode());
             product.setSellOut(dto.getSaleOut());
-            product.setRiskType(dto.getRiskType());
+            product.setRiskType(riskType.getCode());
             product.setOffNae(dto.getOffNae());
             productRepository.save(product);
 

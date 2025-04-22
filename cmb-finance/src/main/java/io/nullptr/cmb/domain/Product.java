@@ -41,7 +41,7 @@ public class Product {
     private String sellOut;
 
     /**
-     * 稳健低波 - A, 稳健增值 - B, 稳中求进 - C
+     * 稳健低波 - B, 稳健增值 - C, 稳中求进 - D
      */
     @Column(length = 7, nullable = false)
     private String riskType;
