@@ -5,6 +5,7 @@ import io.nullptr.cmb.client.dto.response.ProductHistoryNetValueQueryResult;
 import io.nullptr.cmb.client.dto.response.ProductQueryByTagResult;
 import io.nullptr.cmb.domain.Product;
 import io.nullptr.cmb.domain.ProductNetValue;
+import io.nullptr.cmb.domain.ProductRiskType;
 import io.nullptr.cmb.domain.event.ProductCreatedEvent;
 import io.nullptr.cmb.domain.event.ProductSellOutStateChangedEvent;
 import io.nullptr.cmb.domain.repository.ProductNetValueRepository;
@@ -16,16 +17,14 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -48,9 +47,14 @@ public class ZsProductDataSyncTaskSupport {
      * 更新产品列表
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public List<Product> updateProduct(String productTag) {
-        ProductQueryByTagResult productQueryByTagResult = cmbMobileClient.queryProductByTag(productTag);
-        List<ProductQueryByTagResult.ProductDetail> productDetailList = productQueryByTagResult.getProductDetailList();
+    public List<Product> updateProduct(ProductRiskType riskType, String productTag) {
+        ProductQueryByTagResult queryResult = cmbMobileClient.queryProductByRiskTypeAndTag(riskType.getCode(), productTag);
+
+        if (queryResult == null || CollectionUtils.isEmpty(queryResult.getProductDetailList())) {
+            return Collections.emptyList();
+        }
+
+        List<ProductQueryByTagResult.ProductDetail> productDetailList = queryResult.getProductDetailList();
 
         for (ProductQueryByTagResult.ProductDetail dto : productDetailList) {
             String saCode = dto.getSaCode();
@@ -110,6 +114,7 @@ public class ZsProductDataSyncTaskSupport {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void updateProductNetValue(Product product) {
         LocalDate today = LocalDate.now();
+        LocalDate qDate = today.minusDays(1);
 
         String saCode = product.getSaCode();
         String innerCode = product.getInnerCode();
@@ -122,11 +127,11 @@ public class ZsProductDataSyncTaskSupport {
                 .max(LocalDate::compareTo)
                 .orElse(null);
 
-        if (latestDate != null && !latestDate.isBefore(today)) {
+        if (latestDate != null && !latestDate.isBefore(qDate)) {
             return;
         }
 
-        String dataScope = calculateFetchDataScope(today, latestDate);
+        String dataScope = calculateFetchDataScope(qDate, latestDate);
 
         ProductHistoryNetValueQueryResult historyNetValueQueryResult =
                 cmbMobileClient.queryHistoryNetValue(dataScope, saCode, innerCode);

@@ -5,6 +5,7 @@ import io.nullptr.cmb.client.dto.response.ProductBCDListDTO;
 import io.nullptr.cmb.domain.Product;
 import io.nullptr.cmb.domain.ProductRiskType;
 import io.nullptr.cmb.domain.repository.ProductRepository;
+import io.nullptr.cmb.infrastructure.common.Constants;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -99,8 +100,22 @@ public class FinanceProductDataSyncTask {
             product.setProductTag(dto.getJjbTag());
         }
 
+        String offNae = product.getOffNae();
+
+        if (offNae.startsWith("I 代销")) {
+            String newOffNae = offNae.substring(4);
+            String newShortName = newOffNae + product.getShortName();
+            product.setOffNae(newOffNae);
+            product.setShortName(newShortName);
+        }
+
         String sellOut = dto.getSellOut();
-        product.setSellOut(sellOut == null ? "" : sellOut);
+        if (StringUtils.hasText(sellOut)) {
+            product.setSellOut(sellOut);
+        } else if (!StringUtils.hasText(product.getSellOut())) {
+            product.setSellOut(Constants.PRODUCT_SALE_OUT_N);
+        }
+
         product.setQuota(dto.getDxsTag());
 
         String prdInf = dto.getPrdInf();

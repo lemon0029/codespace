@@ -35,7 +35,7 @@ public class CmbFinanceMCPToolService {
 
         StringBuilder builder = new StringBuilder();
 
-        ProductQueryByTagResult result = cmbMobileClient.queryProductByTag("7");
+        ProductQueryByTagResult result = cmbMobileClient.queryProductByRiskTypeAndTag("", "7");
         List<ProductQueryByTagResult.ProductDetail> productList = result.getProductDetailList();
 
         for (ProductQueryByTagResult.ProductDetail productDetail : productList) {

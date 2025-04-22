@@ -102,13 +102,19 @@ public class CmbMobileClient {
         return result;
     }
 
-    public ProductQueryByTagResult queryProductByTag(String productTag) {
-        ResponseWrapper<ProductQueryByTagResult> responseWrapper = service.queryProductByTag("", productTag);
+    public ProductQueryByTagResult queryProductByRiskTypeAndTag(String riskType, String productTag) {
+        ResponseWrapper<ProductQueryByTagResult> responseWrapper = service.queryProductByTag(riskType, productTag);
         BizResult<ProductQueryByTagResult> bizResult = responseWrapper.getBizResult();
 
-        return Optional.ofNullable(bizResult)
+        ProductQueryByTagResult result = Optional.ofNullable(bizResult)
                 .map(BizResult::getData)
                 .orElse(null);
+
+        if (result == null) {
+            log.warn("Failed to query product by riskType: {}, productTag: {}, result: {}", riskType, productTag, responseWrapper);
+        }
+
+        return result;
     }
 
     public ProductHistoryPerformanceQueryResult queryHistoryPerformance(String saCode, String innerCode) {

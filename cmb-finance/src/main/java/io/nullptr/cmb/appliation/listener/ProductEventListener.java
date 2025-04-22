@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionalEventListener;
 
 import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 
 @Slf4j
 @Component
@@ -107,7 +108,7 @@ public class ProductEventListener {
 
                 if (currentSellOut) {
                     builder.append("> Duration: ")
-                            .append(duration)
+                            .append(duration.truncatedTo(ChronoUnit.SECONDS))
                             .append("\n");
                 }
 

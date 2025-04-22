@@ -1,6 +1,7 @@
 package io.nullptr.cmb.appliation.scheduler;
 
 import io.nullptr.cmb.domain.Product;
+import io.nullptr.cmb.domain.ProductRiskType;
 import io.nullptr.cmb.domain.ProductZsTag;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +10,10 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -90,7 +94,21 @@ public class ZsProductDataSyncTask {
         }
 
         log.info("Start to execute product data sync task, tag: {}", productZsTag);
-        List<Product> products = support.updateProduct(productZsTag.getCode());
+
+        List<Product> products = new ArrayList<>();
+        Set<String> seen = new HashSet<>();
+
+        for (ProductRiskType riskType : ProductRiskType.values()) {
+            List<Product> tmpProducts = support.updateProduct(riskType, productZsTag.getCode());
+
+            for (Product tmpProduct : tmpProducts) {
+                if (!seen.add(tmpProduct.getSaleCode())) {
+                    continue;
+                }
+
+                products.add(tmpProduct);
+            }
+        }
 
         // TODO 净值应该要到 15:30 之后才会更新吧？
         for (Product product : products) {
