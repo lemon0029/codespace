@@ -88,6 +88,10 @@ public class ZsProductDataSyncTask {
 
         LocalDateTime now = LocalDateTime.now();
 
+        if (support.todayIsRestDayOrHoliday()) {
+            return;
+        }
+
         // 如果当前时间是在 00:00 ~ 09:00 这个时间段则不更新数据
         if (now.getHour() < 9) {
             return;

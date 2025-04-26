@@ -65,6 +65,10 @@ public class FinanceProductDataSyncTask {
             return;
         }
 
+        if (zsProductDataSyncTaskSupport.todayIsRestDayOrHoliday()) {
+            return;
+        }
+
         LocalDateTime now = LocalDateTime.now();
         if (now.getHour() < 10) {
             return;

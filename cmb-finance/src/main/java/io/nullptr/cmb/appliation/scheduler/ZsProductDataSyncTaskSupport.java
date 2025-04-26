@@ -1,5 +1,7 @@
 package io.nullptr.cmb.appliation.scheduler;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.nullptr.cmb.client.CmbMobileClient;
 import io.nullptr.cmb.client.dto.response.ProductHistoryNetValueQueryResult;
 import io.nullptr.cmb.client.dto.response.ProductQueryByTagResult;
@@ -13,13 +15,19 @@ import io.nullptr.cmb.domain.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
+import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -37,11 +45,15 @@ public class ZsProductDataSyncTaskSupport {
 
     private final JdbcTemplate jdbcTemplate;
 
+    private final ObjectMapper objectMapper;
+
     private final ProductRepository productRepository;
 
     private final ProductNetValueRepository productNetValueRepository;
 
     private final ApplicationEventPublisher applicationEventPublisher;
+
+    private static final RestTemplate restTemplate = new RestTemplate();
 
     /**
      * 更新产品列表
@@ -169,6 +181,77 @@ public class ZsProductDataSyncTaskSupport {
         }
 
         saveAllProductNetValues(netValues);
+    }
+
+    public boolean todayIsRestDayOrHoliday() {
+        LocalDate today = LocalDate.now();
+
+        DayOfWeek dayOfWeek = today.getDayOfWeek();
+        if (dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY) {
+            return true;
+        }
+
+        Set<LocalDate> holidayOfYear = loadHolidays(today.getYear());
+
+        return holidayOfYear.contains(today);
+    }
+
+    private Set<LocalDate> loadHolidays(int year) {
+        String data = fetchHolidays(year);
+
+        if (!StringUtils.hasText(data)) {
+            return Collections.emptySet();
+        }
+
+        Set<LocalDate> result = new LinkedHashSet<>();
+
+        try {
+            JsonNode jsonNode = objectMapper.readTree(data);
+            JsonNode daysNode = jsonNode.get("days");
+
+            for (JsonNode node : daysNode) {
+                String date = node.get("date").asText();
+                result.add(LocalDate.parse(date));
+            }
+
+        } catch (Exception e) {
+            log.warn("Failed to parse holiday data: {}", data, e);
+        }
+
+        return result;
+    }
+
+    private static synchronized String fetchHolidays(int year) {
+        String userHome = System.getProperty("user.home");
+        Path path = Path.of(userHome, ".cmb-finance", "holiday", "%d.json".formatted(year));
+
+        try {
+            if (Files.exists(path)) {
+                return Files.readString(path);
+            }
+
+            String url = "https://fastly.jsdelivr.net/gh/NateScarlet/holiday-cn@master/%d.json".formatted(year);
+            ResponseEntity<String> responseEntity = restTemplate.getForEntity(url, String.class);
+
+            if (!responseEntity.getStatusCode().is2xxSuccessful()) {
+                return null;
+            }
+
+            String data = responseEntity.getBody();
+
+            if (StringUtils.hasText(data)) {
+                if (!Files.exists(path)) {
+                    Files.createDirectories(path.getParent());
+                }
+
+                Files.writeString(path, data);
+            }
+
+            return data;
+        } catch (Exception e) {
+            log.warn("Failed to fetch holiday for {}", year, e);
+            return null;
+        }
     }
 
     private void saveAllProductNetValues(List<ProductNetValue> netValues) {
