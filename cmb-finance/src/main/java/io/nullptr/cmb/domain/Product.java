@@ -60,6 +60,8 @@ public class Product {
 
     private SalesPlatform salesPlatform;
 
+    private boolean subscribed;
+
     @CreatedDate
     private LocalDateTime createdAt;
 

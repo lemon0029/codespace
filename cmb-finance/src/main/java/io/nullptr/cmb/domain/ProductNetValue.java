@@ -25,7 +25,7 @@ public class ProductNetValue {
     @Column(length = 127)
     private String innerCode;
 
-    private String productCode;
+    private String productSaleCode;
 
     private String productName;
 

@@ -163,7 +163,7 @@ public class ProductDataSyncTaskSupport {
     }
 
     private void updateWeBankProductNetValue(Product product, Map<LocalDate, ProductNetValue> currentNetValues, LocalDate qDate, LocalDate latestDate) {
-        String innerCode = product.getInnerCode();
+        String saleCode = product.getSaleCode();
         String dataScope = calculateFetchDataScope(qDate, latestDate);
         LocalDate startDate = switch (dataScope) {
             case "A" -> qDate.minusMonths(1);
@@ -171,10 +171,10 @@ public class ProductDataSyncTaskSupport {
             default -> qDate.minusYears(1);
         };
 
-        List<WeBankWealthProductYieldDTO> weBankWealthProductYieldDTOS = weBankApiClient.queryProductYield(innerCode, startDate, qDate);
+        List<WeBankWealthProductYieldDTO> weBankWealthProductYieldDTOS = weBankApiClient.queryProductYield(saleCode, startDate, qDate);
 
         log.info("Query we-bank product history net value, [{}, {}]: {}",
-                innerCode, dataScope, weBankWealthProductYieldDTOS);
+                saleCode, dataScope, weBankWealthProductYieldDTOS);
 
         List<ProductNetValue> netValues = new ArrayList<>();
         for (WeBankWealthProductYieldDTO weBankWealthProductYieldDTO : weBankWealthProductYieldDTOS) {
@@ -189,8 +189,8 @@ public class ProductDataSyncTaskSupport {
             }
 
             productNetValue = new ProductNetValue();
-            productNetValue.setInnerCode(innerCode);
-            productNetValue.setProductCode(innerCode);
+            productNetValue.setInnerCode(saleCode);
+            productNetValue.setProductSaleCode(saleCode);
             productNetValue.setProductName(product.getShortName());
             productNetValue.setDate(earningsRateDate);
             productNetValue.setValue(unitNetValue);
@@ -317,13 +317,13 @@ public class ProductDataSyncTaskSupport {
             return;
         }
 
-        String sql = "insert into t_product_net_value(inner_code, date, value, product_code, product_name, created_at, updated_at) values (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "insert into t_product_net_value(inner_code, date, value, product_sale_code, product_name, created_at, updated_at) values (?, ?, ?, ?, ?, ?, ?)";
 
         jdbcTemplate.batchUpdate(sql, netValues, 1024, (ps, argument) -> {
             ps.setString(1, argument.getInnerCode());
             ps.setObject(2, argument.getDate());
             ps.setBigDecimal(3, argument.getValue());
-            ps.setString(4, argument.getProductCode());
+            ps.setString(4, argument.getProductSaleCode());
             ps.setString(5, argument.getProductName());
             ps.setObject(6, LocalDateTime.now());
             ps.setObject(7, LocalDateTime.now());

@@ -32,11 +32,12 @@ public class DataSyncTaskProperties {
     /**
      * 订阅产品
      */
-    private List<SubscribeProduct> subscribeProducts;
+    private List<SubscribedProduct> subscribedProducts;
 
     @Data
-    public static class SubscribeProduct {
+    public static class SubscribedProduct {
         private SalesPlatform salesPlatform;
-        private String productCode;
+        private String productSaleCode;
+        private String productName;
     }
 }
