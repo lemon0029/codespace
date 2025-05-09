@@ -25,6 +25,10 @@ public class ProductNetValue {
     @Column(length = 127)
     private String innerCode;
 
+    private String productCode;
+
+    private String productName;
+
     /**
      * 净值更新日期
      */

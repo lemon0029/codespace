@@ -13,15 +13,15 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest
-class WeBankMobileClientTest {
+class WeBankApiClientTest {
 
     @Autowired
-    private WeBankMobileClient weBankMobileClient;
+    private WeBankApiClient weBankApiClient;
 
     @Test
     void queryProductByCode() {
         List<String> productWatchlist = List.of("25135011A", "ZGN2460034", "2501240018", "A32060", "ZGN2460033", "YJ01240951A", "A32052", "YJ01240793A");
-        List<WeBankWealthProductListDTO> productListDTOS = weBankMobileClient.queryProductByCode(productWatchlist);
+        List<WeBankWealthProductListDTO> productListDTOS = weBankApiClient.queryProductByCode(productWatchlist);
         assertNotNull(productListDTOS);
         assertFalse(productListDTOS.isEmpty());
     }
@@ -32,7 +32,7 @@ class WeBankMobileClientTest {
         LocalDate endDate = LocalDate.parse("2025-05-08");
         LocalDate startDate = endDate.minusYears(1);
 
-        List<WeBankWealthProductYieldDTO> productYieldDTOS = weBankMobileClient.queryProductYield(productCode, startDate, endDate);
+        List<WeBankWealthProductYieldDTO> productYieldDTOS = weBankApiClient.queryProductYield(productCode, startDate, endDate);
         assertNotNull(productYieldDTOS);
         assertFalse(productYieldDTOS.isEmpty());
     }

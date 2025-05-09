@@ -1,5 +1,6 @@
 package io.nullptr.cmb.appliation.scheduler;
 
+import io.nullptr.cmb.appliation.service.ProductDataSyncTaskSupport;
 import io.nullptr.cmb.client.CmbMobileClient;
 import io.nullptr.cmb.client.dto.response.ProductBCDListDTO;
 import io.nullptr.cmb.domain.Product;
@@ -30,7 +31,7 @@ public class FinanceProductDataSyncTask {
 
     private final ProductRepository productRepository;
 
-    private final ZsProductDataSyncTaskSupport zsProductDataSyncTaskSupport;
+    private final ProductDataSyncTaskSupport productDataSyncTaskSupport;
 
     @Transactional
     @Scheduled(fixedDelay = 1800_000, initialDelay = 100_000)
@@ -65,7 +66,7 @@ public class FinanceProductDataSyncTask {
             return;
         }
 
-        if (zsProductDataSyncTaskSupport.todayIsRestDayOrHoliday()) {
+        if (productDataSyncTaskSupport.todayIsRestDayOrHoliday()) {
             return;
         }
 
@@ -83,7 +84,7 @@ public class FinanceProductDataSyncTask {
                     continue;
                 }
 
-                zsProductDataSyncTaskSupport.updateProductNetValue(product);
+                productDataSyncTaskSupport.updateProductNetValue(product);
                 TimeUnit.MILLISECONDS.sleep(700);
             }
         }

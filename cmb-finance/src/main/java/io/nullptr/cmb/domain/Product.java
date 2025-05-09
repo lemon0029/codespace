@@ -58,6 +58,8 @@ public class Product {
      */
     private boolean hotProduct;
 
+    private SalesPlatform salesPlatform;
+
     @CreatedDate
     private LocalDateTime createdAt;
 

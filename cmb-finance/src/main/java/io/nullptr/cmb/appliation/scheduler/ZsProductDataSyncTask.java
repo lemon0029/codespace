@@ -1,5 +1,6 @@
 package io.nullptr.cmb.appliation.scheduler;
 
+import io.nullptr.cmb.appliation.service.ProductDataSyncTaskSupport;
 import io.nullptr.cmb.domain.Product;
 import io.nullptr.cmb.domain.ProductRiskType;
 import io.nullptr.cmb.domain.ProductZsTag;
@@ -21,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class ZsProductDataSyncTask {
 
-    private final ZsProductDataSyncTaskSupport support;
+    private final ProductDataSyncTaskSupport support;
 
     private final DataSyncTaskProperties dataSyncTaskProperties;
 

@@ -1,5 +1,6 @@
 package io.nullptr.cmb.appliation.scheduler;
 
+import io.nullptr.cmb.appliation.service.ProductDataSyncTaskSupport;
 import io.nullptr.cmb.client.CmbMobileClient;
 import io.nullptr.cmb.client.dto.response.HotProductListDTO;
 import io.nullptr.cmb.domain.Product;
@@ -20,7 +21,7 @@ public class HotProductDataSyncTask {
 
     private final CmbMobileClient cmbMobileClient;
 
-    private final ZsProductDataSyncTaskSupport zsProductDataSyncTaskSupport;
+    private final ProductDataSyncTaskSupport productDataSyncTaskSupport;
 
     private final ProductRepository productRepository;
 
@@ -58,7 +59,7 @@ public class HotProductDataSyncTask {
 
             productRepository.save(product);
 
-            zsProductDataSyncTaskSupport.updateProductNetValue(product);
+            productDataSyncTaskSupport.updateProductNetValue(product);
         }
     }
 }

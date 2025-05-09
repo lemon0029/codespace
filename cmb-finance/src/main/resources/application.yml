@@ -30,3 +30,7 @@ data-sync-task:
   zs-tags: [ ]
   risk-types: [ ]
   hot-product-list-data-sync-enabled: true
+
+  subscribe-products:
+    - sales-platform: we_bank
+      product-code: 25135011A

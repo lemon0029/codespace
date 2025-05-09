@@ -1,13 +1,16 @@
-package io.nullptr.cmb.appliation.scheduler;
+package io.nullptr.cmb.appliation.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.nullptr.cmb.client.CmbMobileClient;
+import io.nullptr.cmb.client.WeBankApiClient;
 import io.nullptr.cmb.client.dto.response.ProductHistoryNetValueQueryResult;
 import io.nullptr.cmb.client.dto.response.ProductQueryByTagResult;
+import io.nullptr.cmb.client.dto.response.WeBankWealthProductYieldDTO;
 import io.nullptr.cmb.domain.Product;
 import io.nullptr.cmb.domain.ProductNetValue;
 import io.nullptr.cmb.domain.ProductRiskType;
+import io.nullptr.cmb.domain.SalesPlatform;
 import io.nullptr.cmb.domain.event.ProductCreatedEvent;
 import io.nullptr.cmb.domain.event.ProductSellOutStateChangedEvent;
 import io.nullptr.cmb.domain.repository.ProductNetValueRepository;
@@ -39,9 +42,11 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ZsProductDataSyncTaskSupport {
+public class ProductDataSyncTaskSupport {
 
     private final CmbMobileClient cmbMobileClient;
+
+    private final WeBankApiClient weBankApiClient;
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -136,7 +141,6 @@ public class ZsProductDataSyncTaskSupport {
         LocalDate today = LocalDate.now();
         LocalDate qDate = today.minusDays(1);
 
-        String saCode = product.getSaCode();
         String innerCode = product.getInnerCode();
 
         Map<LocalDate, ProductNetValue> currentNetValues = productNetValueRepository.findAllByInnerCode(innerCode).stream()
@@ -150,6 +154,57 @@ public class ZsProductDataSyncTaskSupport {
         if (latestDate != null && !latestDate.isBefore(qDate)) {
             return;
         }
+
+        if (product.getSalesPlatform() == null || product.getSalesPlatform() == SalesPlatform.CMB) {
+            updateCMBProductNetValue(product, currentNetValues, qDate, latestDate);
+        } else if (product.getSalesPlatform() == SalesPlatform.WE_BANK) {
+            updateWeBankProductNetValue(product, currentNetValues, qDate, latestDate);
+        }
+    }
+
+    private void updateWeBankProductNetValue(Product product, Map<LocalDate, ProductNetValue> currentNetValues, LocalDate qDate, LocalDate latestDate) {
+        String innerCode = product.getInnerCode();
+        String dataScope = calculateFetchDataScope(qDate, latestDate);
+        LocalDate startDate = switch (dataScope) {
+            case "A" -> qDate.minusMonths(1);
+            case "B" -> qDate.minusMonths(3);
+            default -> qDate.minusYears(1);
+        };
+
+        List<WeBankWealthProductYieldDTO> weBankWealthProductYieldDTOS = weBankApiClient.queryProductYield(innerCode, startDate, qDate);
+
+        log.info("Query we-bank product history net value, [{}, {}]: {}",
+                innerCode, dataScope, weBankWealthProductYieldDTOS);
+
+        List<ProductNetValue> netValues = new ArrayList<>();
+        for (WeBankWealthProductYieldDTO weBankWealthProductYieldDTO : weBankWealthProductYieldDTOS) {
+            LocalDate earningsRateDate = weBankWealthProductYieldDTO.getEarningsRateDate();
+            BigDecimal unitNetValue = weBankWealthProductYieldDTO.getUnitNetValue();
+
+            ProductNetValue productNetValue = currentNetValues.get(earningsRateDate);
+
+            if (productNetValue != null) {
+                // 已经更新过的产品净值理论上来说是不会变化的
+                continue;
+            }
+
+            productNetValue = new ProductNetValue();
+            productNetValue.setInnerCode(innerCode);
+            productNetValue.setProductCode(innerCode);
+            productNetValue.setProductName(product.getShortName());
+            productNetValue.setDate(earningsRateDate);
+            productNetValue.setValue(unitNetValue);
+
+            netValues.add(productNetValue);
+        }
+
+        saveAllProductNetValues(netValues);
+    }
+
+    private void updateCMBProductNetValue(Product product, Map<LocalDate, ProductNetValue> currentNetValues, LocalDate qDate, LocalDate latestDate) {
+
+        String saCode = product.getSaCode();
+        String innerCode = product.getInnerCode();
 
         String dataScope = calculateFetchDataScope(qDate, latestDate);
 
@@ -262,14 +317,16 @@ public class ZsProductDataSyncTaskSupport {
             return;
         }
 
-        String sql = "insert into t_product_net_value(inner_code, date, value, created_at, updated_at) values (?, ?, ?, ?, ?)";
+        String sql = "insert into t_product_net_value(inner_code, date, value, product_code, product_name, created_at, updated_at) values (?, ?, ?, ?, ?, ?, ?)";
 
         jdbcTemplate.batchUpdate(sql, netValues, 1024, (ps, argument) -> {
             ps.setString(1, argument.getInnerCode());
             ps.setObject(2, argument.getDate());
             ps.setBigDecimal(3, argument.getValue());
-            ps.setObject(4, LocalDateTime.now());
-            ps.setObject(5, LocalDateTime.now());
+            ps.setString(4, argument.getProductCode());
+            ps.setString(5, argument.getProductName());
+            ps.setObject(6, LocalDateTime.now());
+            ps.setObject(7, LocalDateTime.now());
         });
     }
 

@@ -2,6 +2,7 @@ package io.nullptr.cmb.appliation.scheduler;
 
 import io.nullptr.cmb.domain.ProductRiskType;
 import io.nullptr.cmb.domain.ProductZsTag;
+import io.nullptr.cmb.domain.SalesPlatform;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
@@ -23,5 +24,19 @@ public class DataSyncTaskProperties {
      */
     private List<ProductRiskType> riskTypes;
 
+    /**
+     * 是否开启招商银行热门理财产品数据同步任务
+     */
     private boolean hotProductListDataSyncEnabled;
+
+    /**
+     * 订阅产品
+     */
+    private List<SubscribeProduct> subscribeProducts;
+
+    @Data
+    public static class SubscribeProduct {
+        private SalesPlatform salesPlatform;
+        private String productCode;
+    }
 }

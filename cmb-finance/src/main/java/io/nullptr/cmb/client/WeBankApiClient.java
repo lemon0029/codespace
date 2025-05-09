@@ -22,7 +22,7 @@ import java.util.*;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class WeBankMobileClient {
+public class WeBankApiClient {
 
     private static final WeBankApiService weBankApiService = createWeBankApiService();
 
