@@ -1,5 +1,6 @@
 package io.nullptr.cmb.client;
 
+import io.nullptr.cmb.client.dto.response.HotProductListDTO;
 import io.nullptr.cmb.client.dto.response.ProductBCDListDTO;
 import io.nullptr.cmb.domain.ProductRiskType;
 import io.nullptr.cmb.model.DailyNetValue;
@@ -38,5 +39,12 @@ class CmbMobileClientTest {
 
         Assertions.assertNotNull(dailyNets);
         Assertions.assertFalse(dailyNets.isEmpty());
+    }
+
+    @Test
+    void queryHotProductList() {
+        List<HotProductListDTO> hotProducts = cmbMobileClient.queryHotProductList();
+        Assertions.assertNotNull(hotProducts);
+        Assertions.assertFalse(hotProducts.isEmpty());
     }
 }

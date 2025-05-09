@@ -53,6 +53,11 @@ public class Product {
      */
     private String quota;
 
+    /**
+     * 是否为热门产品
+     */
+    private boolean hotProduct;
+
     @CreatedDate
     private LocalDateTime createdAt;
 

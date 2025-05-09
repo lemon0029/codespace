@@ -28,4 +28,5 @@ spring:
 
 data-sync-task:
   zs-tags: [ ]
-  risk-types: [ steady_low_volatility, steady_growth, balanced_advance ]
+  risk-types: [ ]
+  hot-product-list-data-sync-enabled: true

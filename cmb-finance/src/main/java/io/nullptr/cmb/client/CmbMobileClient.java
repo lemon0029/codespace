@@ -1,5 +1,6 @@
 package io.nullptr.cmb.client;
 
+import io.nullptr.cmb.client.dto.request.HotProductListQuery;
 import io.nullptr.cmb.client.dto.request.ProductBCDListQuery;
 import io.nullptr.cmb.client.dto.request.ProductHistoryYieldOrNetValueQuery;
 import io.nullptr.cmb.client.dto.request.ProductNetValueQuery;
@@ -25,14 +26,22 @@ import java.util.concurrent.TimeUnit;
 @Component
 public class CmbMobileClient {
 
-    private final RestClient restClient = RestClient.builder()
-            .baseUrl("https://mobile.cmbchina.com")
-            .build();
+    private final CmbMobileApiService cmbMobileApiService = createCmbMobileApiService();
 
-    private final RestClientAdapter adapter = RestClientAdapter.create(restClient);
-    private final HttpServiceProxyFactory factory = HttpServiceProxyFactory.builderFor(adapter).build();
+    private final CmbAgencyApiService cmbAgencyApiService = createCmbAgencyApiService();
 
-    private final CmbMobileApiService service = factory.createClient(CmbMobileApiService.class);
+    public List<HotProductListDTO> queryHotProductList() {
+        HotProductListQuery query = new HotProductListQuery("finance", "all");
+
+        BizResult<HotProductListQueryResult> result = cmbAgencyApiService.queryHotProductList(query);
+
+        if (result == null || !result.isSuccess() || result.getData() == null) {
+            log.warn("Failed to query hot product list, result: {}", result);
+            return Collections.emptyList();
+        }
+
+        return result.getData().getRanklist();
+    }
 
     public List<ProductBCDListDTO> queryFinanceProduct(ProductRiskType riskType) {
         return queryFinanceProduct(riskType, 50);
@@ -50,7 +59,7 @@ public class CmbMobileClient {
         log.info("Start to query finance product, query: {}", query);
 
         while (true) {
-            var responseWrapper = service.queryBCDProductList(query);
+            var responseWrapper = cmbMobileApiService.queryBCDProductList(query);
 
             var sysCode = responseWrapper.getSysCode();
             var sysMsg = responseWrapper.getSysMsg();
@@ -103,7 +112,7 @@ public class CmbMobileClient {
     }
 
     public ProductQueryByTagResult queryProductByRiskTypeAndTag(String riskType, String productTag) {
-        ResponseWrapper<ProductQueryByTagResult> responseWrapper = service.queryProductByTag(riskType, productTag);
+        ResponseWrapper<ProductQueryByTagResult> responseWrapper = cmbMobileApiService.queryProductByTag(riskType, productTag);
         BizResult<ProductQueryByTagResult> bizResult = responseWrapper.getBizResult();
 
         ProductQueryByTagResult result = Optional.ofNullable(bizResult)
@@ -118,7 +127,7 @@ public class CmbMobileClient {
     }
 
     public ProductHistoryPerformanceQueryResult queryHistoryPerformance(String saCode, String innerCode) {
-        ResponseWrapper<ProductHistoryPerformanceQueryResult> responseWrapper = service.getHistoryPerformance(saCode, innerCode);
+        ResponseWrapper<ProductHistoryPerformanceQueryResult> responseWrapper = cmbMobileApiService.getHistoryPerformance(saCode, innerCode);
 
         BizResult<ProductHistoryPerformanceQueryResult> bizResult = responseWrapper.getBizResult();
 
@@ -138,7 +147,7 @@ public class CmbMobileClient {
         productNetValueQuery.setSaCode(saCode);
         productNetValueQuery.setPrdCode(innerCode);
 
-        ResponseWrapper<ProductHistoryNetValueQueryResult> responseWrapper = service.getHistoryNetValue(productNetValueQuery);
+        ResponseWrapper<ProductHistoryNetValueQueryResult> responseWrapper = cmbMobileApiService.getHistoryNetValue(productNetValueQuery);
 
         BizResult<ProductHistoryNetValueQueryResult> bizResult = responseWrapper.getBizResult();
 
@@ -157,7 +166,7 @@ public class CmbMobileClient {
         query.setPrdCode(innerCode);
         query.setLabelIds(List.of("200003.LY", "200005.LY"));
 
-        var responseWrapper = service.getHistoryYieldOrNetValue(query);
+        var responseWrapper = cmbMobileApiService.getHistoryYieldOrNetValue(query);
 
         var bizResult = responseWrapper.getBizResult();
 
@@ -186,4 +195,24 @@ public class CmbMobileClient {
 
         return Pair.of(weeklyYields, dailyNets);
     }
+
+    private static CmbMobileApiService createCmbMobileApiService() {
+        return createApiService("https://mobile.cmbchina.com", CmbMobileApiService.class);
+    }
+
+    private static CmbAgencyApiService createCmbAgencyApiService() {
+        return createApiService("https://defaultagency.paas.cmbchina.com", CmbAgencyApiService.class);
+    }
+
+    private static <T> T createApiService(String baseUrl, Class<T> clazz) {
+        final RestClient restClient = RestClient.builder()
+                .baseUrl(baseUrl)
+                .build();
+
+        final RestClientAdapter adapter = RestClientAdapter.create(restClient);
+        final HttpServiceProxyFactory factory = HttpServiceProxyFactory.builderFor(adapter).build();
+
+        return factory.createClient(clazz);
+    }
+
 }

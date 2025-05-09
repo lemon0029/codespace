@@ -22,4 +22,6 @@ public class DataSyncTaskProperties {
      * 是否按风险类型全量同步产品数据
      */
     private List<ProductRiskType> riskTypes;
+
+    private boolean hotProductListDataSyncEnabled;
 }
