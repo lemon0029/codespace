@@ -50,7 +50,7 @@ public class CMBProductDataSyncService implements SubscribeProductDataSyncServic
 
         product.setInnerCode(productSaleCode);
         product.setSaCode(productInfoDTO.getSaaCod());
-        product.setRiskLevel(productInfoDTO.getRiskLv());
+        product.setRiskLevel(productInfoDTO.getRiskLvl());
         product.setProductTag(productInfoDTO.getJjbTag());
 
         if (product.getId() == null) {

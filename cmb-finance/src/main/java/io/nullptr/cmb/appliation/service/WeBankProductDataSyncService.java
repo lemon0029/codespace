@@ -55,7 +55,13 @@ public class WeBankProductDataSyncService implements SubscribeProductDataSyncSer
             product.setHotProduct(false);
             product.setSellOut("UNKNOWN");
             product.setSalesPlatform(SalesPlatform.WE_BANK);
-            product.setOffNae(weBankWealthProductListDTO.getTaName());
+            String taName = weBankWealthProductListDTO.getTaName();
+
+            if (taName.endsWith("有限责任公司")) {
+                taName = taName.replace("有限责任公司", "");
+            }
+
+            product.setOffNae(taName);
             product.setShortName(weBankWealthProductListDTO.getProdShortName());
             product.setSubscribed(true);
 

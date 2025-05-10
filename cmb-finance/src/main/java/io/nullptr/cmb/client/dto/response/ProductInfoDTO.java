@@ -13,7 +13,7 @@ public class ProductInfoDTO {
     private String crpNam;
     private String crpCod;
     private String terDay;
-    private String riskLv;
+    private String riskLvl;
     private String buySum;
     private String jjbTag;
     private String salTag;
