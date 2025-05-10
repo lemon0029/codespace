@@ -2,6 +2,7 @@ package io.nullptr.cmb.client;
 
 import io.nullptr.cmb.client.dto.request.ProductHistoryYieldOrNetValueQuery;
 import io.nullptr.cmb.client.dto.request.ProductBCDListQuery;
+import io.nullptr.cmb.client.dto.request.ProductInfoQuery;
 import io.nullptr.cmb.client.dto.request.ProductNetValueQuery;
 import io.nullptr.cmb.client.dto.response.*;
 import io.nullptr.cmb.client.dto.response.base.ResponseWrapper;
@@ -50,4 +51,10 @@ public interface CmbMobileApiService {
      */
     @PostExchange("/ientrustfinance/sa-finance-detail/label-descript")
     ResponseWrapper<Map<String, List<ProductHistoryYieldOrNetValueResult>>> getHistoryYieldOrNetValue(@RequestBody ProductHistoryYieldOrNetValueQuery query);
+
+    /**
+     * 获取产品信息
+     */
+    @PostExchange("/ientrustfinance/sa-finance-detail/prd-info")
+    ResponseWrapper<ProductInfoDTO> queryProductInfoByCode(@RequestBody ProductInfoQuery query);
 }

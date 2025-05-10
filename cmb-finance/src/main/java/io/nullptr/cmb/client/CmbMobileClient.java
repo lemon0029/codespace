@@ -1,9 +1,6 @@
 package io.nullptr.cmb.client;
 
-import io.nullptr.cmb.client.dto.request.HotProductListQuery;
-import io.nullptr.cmb.client.dto.request.ProductBCDListQuery;
-import io.nullptr.cmb.client.dto.request.ProductHistoryYieldOrNetValueQuery;
-import io.nullptr.cmb.client.dto.request.ProductNetValueQuery;
+import io.nullptr.cmb.client.dto.request.*;
 import io.nullptr.cmb.client.dto.response.*;
 import io.nullptr.cmb.client.dto.response.base.BizResult;
 import io.nullptr.cmb.client.dto.response.base.ResponseWrapper;
@@ -12,6 +9,7 @@ import io.nullptr.cmb.model.DailyNetValue;
 import io.nullptr.cmb.model.WeeklyYield;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.util.Pair;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -29,6 +27,24 @@ public class CmbMobileClient {
     private final CmbMobileApiService cmbMobileApiService = createCmbMobileApiService();
 
     private final CmbAgencyApiService cmbAgencyApiService = createCmbAgencyApiService();
+
+    @Nullable
+    public ProductInfoDTO queryProductInfo(String saCode, String prdCode) {
+        ProductInfoQuery productInfoQuery = new ProductInfoQuery();
+        productInfoQuery.setSaCode(saCode);
+        productInfoQuery.setPrdCode(prdCode);
+
+        ResponseWrapper<ProductInfoDTO> response = cmbMobileApiService.queryProductInfoByCode(productInfoQuery);
+
+        if (response == null || response.getBizResult() == null || response.getBizResult().getData() == null) {
+            log.warn("Failed to query product info, response: {}", response);
+            return null;
+        }
+
+        BizResult<ProductInfoDTO> bizResult = response.getBizResult();
+
+        return bizResult.getData();
+    }
 
     public List<HotProductListDTO> queryHotProductList() {
         HotProductListQuery query = new HotProductListQuery("finance", "all");

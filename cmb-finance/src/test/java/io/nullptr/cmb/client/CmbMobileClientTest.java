@@ -2,6 +2,7 @@ package io.nullptr.cmb.client;
 
 import io.nullptr.cmb.client.dto.response.HotProductListDTO;
 import io.nullptr.cmb.client.dto.response.ProductBCDListDTO;
+import io.nullptr.cmb.client.dto.response.ProductInfoDTO;
 import io.nullptr.cmb.domain.ProductRiskType;
 import io.nullptr.cmb.model.DailyNetValue;
 import io.nullptr.cmb.model.WeeklyYield;
@@ -46,5 +47,15 @@ class CmbMobileClientTest {
         List<HotProductListDTO> hotProducts = cmbMobileClient.queryHotProductList();
         Assertions.assertNotNull(hotProducts);
         Assertions.assertFalse(hotProducts.isEmpty());
+    }
+
+    @Test
+    void queryProductInfo() {
+        String prdCode = "8880A";
+        String saCode = "D07";
+
+        ProductInfoDTO productInfoDTO = cmbMobileClient.queryProductInfo(saCode, prdCode);
+        Assertions.assertNotNull(productInfoDTO);
+        Assertions.assertEquals("招银理财日日金80号A", productInfoDTO.getRipSnm());
     }
 }
