@@ -47,6 +47,7 @@ public class WeBankProductDataSyncService implements SubscribeProductDataSyncSer
                     .orElse(new Product());
 
             product.setInnerCode(prodCode);
+            product.setSaleCode(prodCode);
             product.setSaCode(prodCode);
             product.setRiskLevel(weBankWealthProductListDTO.getRiskLevel());
             product.setProductTag("N/A");
@@ -77,6 +78,7 @@ public class WeBankProductDataSyncService implements SubscribeProductDataSyncSer
                     .orElse(new Product());
 
             product.setInnerCode(productCode);
+            product.setSaleCode(productCode);
             product.setSaCode(productCode);
             product.setRiskLevel("N/A");
             product.setProductTag("N/A");
