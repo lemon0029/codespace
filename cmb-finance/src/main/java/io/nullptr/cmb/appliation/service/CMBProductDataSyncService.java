@@ -60,7 +60,14 @@ public class CMBProductDataSyncService implements SubscribeProductDataSyncServic
         }
 
         product.setSalesPlatform(SalesPlatform.CMB);
-        product.setOffNae(productInfoDTO.getCrpNam());
+
+        String crpNam = productInfoDTO.getCrpNam();
+        if (crpNam.endsWith("有限责任公司")) {
+            crpNam = crpNam.replace("有限责任公司", "");
+        }
+
+        product.setOffNae(crpNam);
+
         product.setShortName(productInfoDTO.getRipSnm());
         product.setSubscribed(true);
 
