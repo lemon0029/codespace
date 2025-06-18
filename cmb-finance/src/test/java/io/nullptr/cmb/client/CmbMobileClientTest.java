@@ -1,8 +1,6 @@
 package io.nullptr.cmb.client;
 
-import io.nullptr.cmb.client.dto.response.HotProductListDTO;
-import io.nullptr.cmb.client.dto.response.ProductBCDListDTO;
-import io.nullptr.cmb.client.dto.response.ProductInfoDTO;
+import io.nullptr.cmb.client.dto.response.*;
 import io.nullptr.cmb.domain.ProductRiskType;
 import io.nullptr.cmb.model.DailyNetValue;
 import io.nullptr.cmb.model.WeeklyYield;
@@ -57,5 +55,23 @@ class CmbMobileClientTest {
         ProductInfoDTO productInfoDTO = cmbMobileClient.queryProductInfo(saCode, prdCode);
         Assertions.assertNotNull(productInfoDTO);
         Assertions.assertEquals("招银理财日日金80号A", productInfoDTO.getRipSnm());
+    }
+
+    @Test
+    void queryFundInfo() {
+        String fundCode = "161130";
+
+        FundInfoDTO fundInfoDTO = cmbMobileClient.queryFundInfo(fundCode);
+        Assertions.assertNotNull(fundInfoDTO);
+    }
+
+    @Test
+    void queryFundHistoryNetValue() {
+        String fundCode = "161130";
+        String expressCode = "X000";
+
+        List<FundHistoryNetValueDTO> fundHistoryNetValueDTOS = cmbMobileClient.queryFundHistoryNetValue(fundCode, expressCode);
+        Assertions.assertNotNull(fundHistoryNetValueDTOS);
+        Assertions.assertFalse(fundHistoryNetValueDTOS.isEmpty());
     }
 }

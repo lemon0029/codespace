@@ -1,5 +1,7 @@
 package io.nullptr.cmb.client;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.nullptr.cmb.client.dto.request.*;
 import io.nullptr.cmb.client.dto.response.*;
 import io.nullptr.cmb.client.dto.response.base.BizResult;
@@ -7,6 +9,7 @@ import io.nullptr.cmb.client.dto.response.base.ResponseWrapper;
 import io.nullptr.cmb.domain.ProductRiskType;
 import io.nullptr.cmb.model.DailyNetValue;
 import io.nullptr.cmb.model.WeeklyYield;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.util.Pair;
 import org.springframework.lang.Nullable;
@@ -22,11 +25,33 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class CmbMobileClient {
+
+    private final ObjectMapper objectMapper;
 
     private final CmbMobileApiService cmbMobileApiService = createCmbMobileApiService();
 
     private final CmbAgencyApiService cmbAgencyApiService = createCmbAgencyApiService();
+
+    public FundInfoDTO queryFundInfo(String fundCode) {
+        ResponseWrapper<JsonNode> responseWrapper = cmbMobileApiService.queryFundDetail(fundCode);
+
+        JsonNode data = responseWrapper.getBizResult().getData();
+        JsonNode detailNode = data.get("fD2QDDTAZ1s").get(0);
+
+        return objectMapper.convertValue(detailNode, FundInfoDTO.class);
+    }
+
+    public List<FundHistoryNetValueDTO> queryFundHistoryNetValue(String fundCode, String expressCode) {
+        FundHistoryNetValueQuery fundHistoryNetValueQuery = new FundHistoryNetValueQuery();
+        fundHistoryNetValueQuery.setFundCode(fundCode);
+        fundHistoryNetValueQuery.setExpressCode(expressCode);
+
+        ResponseWrapper<List<FundHistoryNetValueDTO>> responseWrapper = cmbMobileApiService.queryFundHistoryNetValue(fundHistoryNetValueQuery);
+
+        return responseWrapper.getBizResult().getData();
+    }
 
     @Nullable
     public ProductInfoDTO queryProductInfo(String saCode, String prdCode) {

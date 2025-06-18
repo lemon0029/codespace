@@ -1,9 +1,7 @@
 package io.nullptr.cmb.client;
 
-import io.nullptr.cmb.client.dto.request.ProductHistoryYieldOrNetValueQuery;
-import io.nullptr.cmb.client.dto.request.ProductBCDListQuery;
-import io.nullptr.cmb.client.dto.request.ProductInfoQuery;
-import io.nullptr.cmb.client.dto.request.ProductNetValueQuery;
+import com.fasterxml.jackson.databind.JsonNode;
+import io.nullptr.cmb.client.dto.request.*;
 import io.nullptr.cmb.client.dto.response.*;
 import io.nullptr.cmb.client.dto.response.base.ResponseWrapper;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -57,4 +55,16 @@ public interface CmbMobileApiService {
      */
     @PostExchange("/ientrustfinance/sa-finance-detail/prd-info")
     ResponseWrapper<ProductInfoDTO> queryProductInfoByCode(@RequestBody ProductInfoQuery query);
+
+    /**
+     * 获取基金详情
+     */
+    @PostExchange("/ifundprds/fund-detail/query-fund-detail")
+    ResponseWrapper<JsonNode> queryFundDetail(@RequestBody String fundCode);
+
+    /**
+     * 获取基金的历史净值
+     */
+    @PostExchange("/ifundprds/fund-detail-charts/query-net-value")
+    ResponseWrapper<List<FundHistoryNetValueDTO>> queryFundHistoryNetValue(@RequestBody FundHistoryNetValueQuery query);
 }
