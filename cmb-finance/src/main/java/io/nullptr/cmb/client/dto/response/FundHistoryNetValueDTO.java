@@ -3,6 +3,10 @@ package io.nullptr.cmb.client.dto.response;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
 @Data
 public class FundHistoryNetValueDTO {
 
@@ -44,4 +48,12 @@ public class FundHistoryNetValueDTO {
 
     @JsonProperty("ZRHTRAT")
     private String zrhrtat;
+
+    public LocalDate getDate() {
+        return LocalDate.parse(znavdat, DateTimeFormatter.BASIC_ISO_DATE);
+    }
+
+    public BigDecimal getNetValue() {
+        return new BigDecimal(znavval);
+    }
 }

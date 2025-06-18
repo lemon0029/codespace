@@ -2,57 +2,48 @@ package io.nullptr.cmb.appliation.service;
 
 import io.nullptr.cmb.appliation.scheduler.DataSyncTaskProperties;
 import io.nullptr.cmb.client.CmbMobileClient;
-import io.nullptr.cmb.client.dto.response.ProductInfoDTO;
+import io.nullptr.cmb.client.dto.response.FundInfoDTO;
 import io.nullptr.cmb.domain.Product;
 import io.nullptr.cmb.domain.ProductType;
 import io.nullptr.cmb.domain.SalesPlatform;
 import io.nullptr.cmb.domain.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Component
+@Service
 @RequiredArgsConstructor
-public class CMBProductDataSyncService implements SubscribeProductDataSyncService {
+public class FundProductDataSyncService implements SubscribeProductDataSyncService {
 
     private final CmbMobileClient cmbMobileClient;
 
-    private final ProductRepository productRepository;
-
     private final ProductDataSyncTaskSupport productDataSyncTaskSupport;
 
-    private static final String DEFAULT_SAA_CODE = "D07";
+    private final ProductRepository productRepository;
 
     @Override
     public void doSync(List<DataSyncTaskProperties.SubscribedProduct> subscribedProducts) {
         for (DataSyncTaskProperties.SubscribedProduct subscribedProduct : subscribedProducts) {
-
             Product product = updateProduct(subscribedProduct);
-
-            if (product == null) {
-                continue;
-            }
 
             productDataSyncTaskSupport.updateProductNetValue(product);
         }
     }
 
     private Product updateProduct(DataSyncTaskProperties.SubscribedProduct subscribedProduct) {
-        String productSaleCode = subscribedProduct.getProductSaleCode();
-        ProductInfoDTO productInfoDTO = cmbMobileClient.queryProductInfo(DEFAULT_SAA_CODE, productSaleCode);
+        String fundCode = subscribedProduct.getProductSaleCode();
+        FundInfoDTO fundInfoDTO = cmbMobileClient.queryFundInfo(fundCode);
 
-        if (productInfoDTO == null) {
-            return null;
-        }
-
-        Product product = productRepository.findByInnerCode(productSaleCode)
+        Product product = productRepository.findByInnerCode(fundCode)
                 .orElse(new Product());
 
-        product.setInnerCode(productSaleCode);
-        product.setSaCode(productInfoDTO.getSaaCod());
-        product.setRiskLevel(productInfoDTO.getRiskLvl());
-        product.setProductTag(productInfoDTO.getJjbTag());
+        product.setSaleCode(fundCode);
+        product.setInnerCode(fundCode);
+        product.setSaCode(fundCode);
+        product.setRiskLevel(fundInfoDTO.getRiskLevel());
+        product.setProductTag(fundInfoDTO.getFundTypeDesc());
+        product.setType(ProductType.FUND);
 
         if (product.getId() == null) {
             product.setRiskType("N/A");
@@ -62,14 +53,11 @@ public class CMBProductDataSyncService implements SubscribeProductDataSyncServic
 
         product.setSalesPlatform(SalesPlatform.CMB);
 
-        String crpNam = productInfoDTO.getCrpNam();
-        if (crpNam.endsWith("有限责任公司")) {
-            crpNam = crpNam.replace("有限责任公司", "");
-        }
+        String crpNam = fundInfoDTO.getCompanyName();
 
         product.setOffNae(crpNam);
 
-        product.setShortName(productInfoDTO.getRipSnm());
+        product.setShortName(fundInfoDTO.getFundName());
         product.setSubscribed(true);
 
         productRepository.save(product);
@@ -79,6 +67,6 @@ public class CMBProductDataSyncService implements SubscribeProductDataSyncServic
 
     @Override
     public boolean support(SalesPlatform salesPlatform, ProductType productType) {
-        return salesPlatform == SalesPlatform.CMB && productType == ProductType.WEALTH;
+        return salesPlatform == SalesPlatform.CMB && productType == ProductType.FUND;
     }
 }

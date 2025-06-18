@@ -2,7 +2,6 @@ package io.nullptr.cmb.appliation.scheduler;
 
 import io.nullptr.cmb.appliation.service.ProductDataSyncTaskSupport;
 import io.nullptr.cmb.appliation.service.SubscribeProductDataSyncService;
-import io.nullptr.cmb.domain.SalesPlatform;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -11,7 +10,6 @@ import org.springframework.util.CollectionUtils;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -45,24 +43,16 @@ public class SubscribedProductDataSyncTask {
 
         log.info("Start to execute subscribed product data sync task: {}", subscribedProducts);
 
-        var groupBySalesPlatform = subscribedProducts.stream()
-                .collect(Collectors.groupingBy(DataSyncTaskProperties.SubscribedProduct::getSalesPlatform));
+        for (SubscribeProductDataSyncService service : subscribeProductDataSyncServices) {
+            List<DataSyncTaskProperties.SubscribedProduct> filtered = subscribedProducts.stream()
+                    .filter(it -> service.support(it.getSalesPlatform(), it.getProductType()))
+                    .toList();
 
-        for (var entry : groupBySalesPlatform.entrySet()) {
-
-            SalesPlatform salesPlatform = entry.getKey();
-
-            SubscribeProductDataSyncService subscribeProductDataSyncService = subscribeProductDataSyncServices.stream()
-                    .filter(it -> it.support(salesPlatform))
-                    .findFirst()
-                    .orElse(null);
-
-            if (subscribeProductDataSyncService == null) {
-                log.warn("unsupported sales platform: {}", entry);
+            if (CollectionUtils.isEmpty(filtered)) {
                 continue;
             }
 
-            subscribeProductDataSyncService.doSync(entry.getValue());
+            service.doSync(filtered);
         }
     }
 

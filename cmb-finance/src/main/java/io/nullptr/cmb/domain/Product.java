@@ -19,7 +19,7 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 7)
+    @Column(nullable = false, length = 31)
     private String productTag;
 
     private String offNae;
@@ -27,6 +27,8 @@ public class Product {
     private String shortName;
 
     private String saCode;
+
+    private ProductType type = ProductType.WEALTH;
 
     @Column(unique = true, length = 127)
     private String innerCode;

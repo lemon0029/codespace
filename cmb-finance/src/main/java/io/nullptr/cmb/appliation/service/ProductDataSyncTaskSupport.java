@@ -4,13 +4,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.nullptr.cmb.client.CmbMobileClient;
 import io.nullptr.cmb.client.WeBankApiClient;
+import io.nullptr.cmb.client.dto.response.FundHistoryNetValueDTO;
 import io.nullptr.cmb.client.dto.response.ProductHistoryNetValueQueryResult;
 import io.nullptr.cmb.client.dto.response.ProductQueryByTagResult;
 import io.nullptr.cmb.client.dto.response.WeBankWealthProductYieldDTO;
-import io.nullptr.cmb.domain.Product;
-import io.nullptr.cmb.domain.ProductNetValue;
-import io.nullptr.cmb.domain.ProductRiskType;
-import io.nullptr.cmb.domain.SalesPlatform;
+import io.nullptr.cmb.domain.*;
 import io.nullptr.cmb.domain.event.ProductCreatedEvent;
 import io.nullptr.cmb.domain.event.ProductSellOutStateChangedEvent;
 import io.nullptr.cmb.domain.repository.ProductNetValueRepository;
@@ -155,11 +153,56 @@ public class ProductDataSyncTaskSupport {
             return;
         }
 
-        if (product.getSalesPlatform() == null || product.getSalesPlatform() == SalesPlatform.CMB) {
+        if (product.getSalesPlatform() == SalesPlatform.CMB && product.getType() == ProductType.FUND) {
+            updateCMBFundProductNetValue(product, currentNetValues, qDate, latestDate);
+        } else if (product.getSalesPlatform() == null || product.getSalesPlatform() == SalesPlatform.CMB) {
             updateCMBProductNetValue(product, currentNetValues, qDate, latestDate);
         } else if (product.getSalesPlatform() == SalesPlatform.WE_BANK) {
             updateWeBankProductNetValue(product, currentNetValues, qDate, latestDate);
         }
+    }
+
+    private void updateCMBFundProductNetValue(Product product,
+                                              Map<LocalDate, ProductNetValue> currentNetValues,
+                                              LocalDate qDate,
+                                              LocalDate latestDate) {
+        String fundCode = product.getSaleCode();
+        String dataScope = calculateFetchDataScope(qDate, latestDate);
+
+        String expressCode = switch (dataScope) {
+            case "A" -> "M001";
+            case "B" -> "M003";
+            case "C" -> "Y001";
+            default -> "X000";
+        };
+
+        List<FundHistoryNetValueDTO> fundHistoryNetValueDTOS = cmbMobileClient.queryFundHistoryNetValue(fundCode, expressCode);
+
+        log.info("Query cmb fund product history net value, [{}, {}]: {}", fundCode, expressCode, fundHistoryNetValueDTOS);
+
+        List<ProductNetValue> netValues = new ArrayList<>();
+
+        for (FundHistoryNetValueDTO dto : fundHistoryNetValueDTOS) {
+            LocalDate date = dto.getDate();
+            BigDecimal netValue = dto.getNetValue();
+
+            ProductNetValue netValueEntity = currentNetValues.get(date);
+
+            if (netValueEntity != null) {
+                continue;
+            }
+
+            netValueEntity = new ProductNetValue();
+            netValueEntity.setProductSaleCode(fundCode);
+            netValueEntity.setInnerCode(fundCode);
+            netValueEntity.setProductName(product.getShortName());
+            netValueEntity.setDate(date);
+            netValueEntity.setValue(netValue);
+
+            netValues.add(netValueEntity);
+        }
+
+        saveAllProductNetValues(netValues);
     }
 
     private void updateWeBankProductNetValue(Product product, Map<LocalDate, ProductNetValue> currentNetValues, LocalDate qDate, LocalDate latestDate) {

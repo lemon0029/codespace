@@ -4,6 +4,7 @@ import io.nullptr.cmb.appliation.scheduler.DataSyncTaskProperties;
 import io.nullptr.cmb.client.WeBankApiClient;
 import io.nullptr.cmb.client.dto.response.WeBankWealthProductListDTO;
 import io.nullptr.cmb.domain.Product;
+import io.nullptr.cmb.domain.ProductType;
 import io.nullptr.cmb.domain.SalesPlatform;
 import io.nullptr.cmb.domain.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -104,7 +105,7 @@ public class WeBankProductDataSyncService implements SubscribeProductDataSyncSer
     }
 
     @Override
-    public boolean support(SalesPlatform salesPlatform) {
-        return salesPlatform == SalesPlatform.WE_BANK;
+    public boolean support(SalesPlatform salesPlatform, ProductType productType) {
+        return salesPlatform == SalesPlatform.WE_BANK && productType == ProductType.WEALTH;
     }
 }

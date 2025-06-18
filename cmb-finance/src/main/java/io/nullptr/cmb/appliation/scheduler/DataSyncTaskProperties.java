@@ -1,6 +1,7 @@
 package io.nullptr.cmb.appliation.scheduler;
 
 import io.nullptr.cmb.domain.ProductRiskType;
+import io.nullptr.cmb.domain.ProductType;
 import io.nullptr.cmb.domain.ProductZsTag;
 import io.nullptr.cmb.domain.SalesPlatform;
 import lombok.Data;
@@ -36,6 +37,7 @@ public class DataSyncTaskProperties {
 
     @Data
     public static class SubscribedProduct {
+        private ProductType productType = ProductType.WEALTH;
         private SalesPlatform salesPlatform;
         private String productSaleCode;
         private String productName;
