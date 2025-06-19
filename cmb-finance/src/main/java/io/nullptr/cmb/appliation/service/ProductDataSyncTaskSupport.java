@@ -150,6 +150,7 @@ public class ProductDataSyncTaskSupport {
                 .orElse(null);
 
         if (latestDate != null && !latestDate.isBefore(qDate)) {
+            log.info("Net value data is up to date, no need to update: {}", product.getSaleCode());
             return;
         }
 
@@ -185,6 +186,7 @@ public class ProductDataSyncTaskSupport {
         for (FundHistoryNetValueDTO dto : fundHistoryNetValueDTOS) {
             LocalDate date = dto.getDate();
             BigDecimal netValue = dto.getNetValue();
+            BigDecimal pctChange = dto.getPctChange();
 
             ProductNetValue netValueEntity = currentNetValues.get(date);
 
@@ -198,6 +200,7 @@ public class ProductDataSyncTaskSupport {
             netValueEntity.setProductName(product.getShortName());
             netValueEntity.setDate(date);
             netValueEntity.setValue(netValue);
+            netValueEntity.setPctChange(pctChange);
 
             netValues.add(netValueEntity);
         }
@@ -360,6 +363,8 @@ public class ProductDataSyncTaskSupport {
             return;
         }
 
+        var startTime = System.currentTimeMillis();
+
         String sql = "insert into t_product_net_value(inner_code, date, value, product_sale_code, product_name, created_at, updated_at) values (?, ?, ?, ?, ?, ?, ?)";
 
         jdbcTemplate.batchUpdate(sql, netValues, 1024, (ps, argument) -> {
@@ -371,6 +376,8 @@ public class ProductDataSyncTaskSupport {
             ps.setObject(6, LocalDateTime.now());
             ps.setObject(7, LocalDateTime.now());
         });
+
+        log.info("Save {} product net values, cost: {}ms", netValues.size(), System.currentTimeMillis() - startTime);
     }
 
     /**

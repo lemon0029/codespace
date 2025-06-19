@@ -56,4 +56,11 @@ public class FundHistoryNetValueDTO {
     public BigDecimal getNetValue() {
         return new BigDecimal(znavval);
     }
+
+    /**
+     * 跌涨幅
+     */
+    public BigDecimal getPctChange() {
+        return new BigDecimal(znavpct);
+    }
 }

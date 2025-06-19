@@ -40,6 +40,12 @@ public class ProductNetValue {
     @Column(precision = 10, scale = 6, updatable = false)
     private BigDecimal value;
 
+    /**
+     * 跌涨幅
+     */
+    @Column(precision = 10, scale = 6, updatable = false)
+    private BigDecimal pctChange;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 
