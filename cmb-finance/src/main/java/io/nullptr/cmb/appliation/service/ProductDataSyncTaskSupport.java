@@ -365,16 +365,17 @@ public class ProductDataSyncTaskSupport {
 
         var startTime = System.currentTimeMillis();
 
-        String sql = "insert into t_product_net_value(inner_code, date, value, product_sale_code, product_name, created_at, updated_at) values (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "insert into t_product_net_value(inner_code, date, value, pct_change, product_sale_code, product_name, created_at, updated_at) values (?, ?, ?, ?, ?, ?, ?, ?)";
 
         jdbcTemplate.batchUpdate(sql, netValues, 1024, (ps, argument) -> {
             ps.setString(1, argument.getInnerCode());
             ps.setObject(2, argument.getDate());
             ps.setBigDecimal(3, argument.getValue());
-            ps.setString(4, argument.getProductSaleCode());
-            ps.setString(5, argument.getProductName());
-            ps.setObject(6, LocalDateTime.now());
+            ps.setBigDecimal(4, argument.getPctChange());
+            ps.setString(5, argument.getProductSaleCode());
+            ps.setString(6, argument.getProductName());
             ps.setObject(7, LocalDateTime.now());
+            ps.setObject(8, LocalDateTime.now());
         });
 
         log.info("Save {} product net values, cost: {}ms", netValues.size(), System.currentTimeMillis() - startTime);
