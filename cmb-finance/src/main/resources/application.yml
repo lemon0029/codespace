@@ -29,8 +29,20 @@ spring:
 data-sync-task:
   zs-tags: [ ]
   risk-types: [ ]
-  hot-product-list-data-sync-enabled: true
+  hot-product-list-data-sync-enabled: false
+  subscribed-products:
+    - sales-platform: cmb
+      product-type: fund
+      product-sale-code: "003958"
 
-  subscribe-products:
-    - sales-platform: we_bank
-      product-code: 25135011A
+    - sales-platform: cmb
+      product-type: fund
+      product-sale-code: "161130"
+
+    - sales-platform: cmb
+      product-type: fund
+      product-sale-code: "004253"
+
+    - sales-platform: cmb
+      product-type: fund
+      product-sale-code: "050025"
