@@ -1,9 +1,9 @@
 package io.nullptr.cmb.client;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import io.nullptr.cmb.client.dto.response.FundDetailDTO;
 import io.nullptr.cmb.client.dto.response.FundNetValueDTO;
 import io.nullptr.cmb.client.dto.response.base.EastMoneyApiCallResponse;
+import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
 import org.springframework.util.ReflectionUtils;
 import org.springframework.web.client.RestClient;
@@ -13,12 +13,12 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import java.lang.reflect.Field;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class EastMoneyMobileApiService {
+@Service
+public class EastMoneyApiService {
 
     private static final EastMoneyApiClient API_CLIENT = createEastMoneyMobileApiClient();
 

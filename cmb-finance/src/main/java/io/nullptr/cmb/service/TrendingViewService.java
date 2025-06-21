@@ -74,7 +74,7 @@ public class TrendingViewService {
         for (LocalDate date = startDate.plusDays(1); date.isBefore(endDate); date = date.plusDays(1)) {
             ProductNetValue netValue = netValuesGroupedByDate.get(date);
 
-            if (netValue != null) {
+            if (netValue != null && netValue.getPctChange() != null) {
                 BigDecimal pctChange = netValue.getPctChange();
 
                 amount = amount.multiply(pctChange)

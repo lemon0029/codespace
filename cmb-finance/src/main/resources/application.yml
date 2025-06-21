@@ -31,18 +31,18 @@ data-sync-task:
   risk-types: [ ]
   hot-product-list-data-sync-enabled: false
   subscribed-products:
-    - sales-platform: cmb
+    - sales-platform: east_money
       product-type: fund
       product-sale-code: "003958"
 
-    - sales-platform: cmb
+    - sales-platform: east_money
       product-type: fund
       product-sale-code: "161130"
 
-    - sales-platform: cmb
+    - sales-platform: east_money
       product-type: fund
       product-sale-code: "004253"
 
-    - sales-platform: cmb
+    - sales-platform: east_money
       product-type: fund
       product-sale-code: "050025"

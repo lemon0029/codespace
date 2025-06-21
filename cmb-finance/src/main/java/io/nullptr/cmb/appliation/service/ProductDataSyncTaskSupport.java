@@ -3,11 +3,9 @@ package io.nullptr.cmb.appliation.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.nullptr.cmb.client.CmbMobileClient;
+import io.nullptr.cmb.client.EastMoneyApiService;
 import io.nullptr.cmb.client.WeBankApiClient;
-import io.nullptr.cmb.client.dto.response.FundHistoryNetValueDTO;
-import io.nullptr.cmb.client.dto.response.ProductHistoryNetValueQueryResult;
-import io.nullptr.cmb.client.dto.response.ProductQueryByTagResult;
-import io.nullptr.cmb.client.dto.response.WeBankWealthProductYieldDTO;
+import io.nullptr.cmb.client.dto.response.*;
 import io.nullptr.cmb.domain.*;
 import io.nullptr.cmb.domain.event.ProductCreatedEvent;
 import io.nullptr.cmb.domain.event.ProductSellOutStateChangedEvent;
@@ -45,6 +43,8 @@ public class ProductDataSyncTaskSupport {
     private final CmbMobileClient cmbMobileClient;
 
     private final WeBankApiClient weBankApiClient;
+
+    private final EastMoneyApiService eastMoneyApiService;
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -154,13 +154,60 @@ public class ProductDataSyncTaskSupport {
             return;
         }
 
-        if (product.getSalesPlatform() == SalesPlatform.CMB && product.getType() == ProductType.FUND) {
+        if (product.getSalesPlatform() == SalesPlatform.EAST_MONEY && product.getType() == ProductType.FUND) {
+            updateEastMoneyFundProductNetValue(product, currentNetValues, qDate, latestDate);
+        } else if (product.getSalesPlatform() == SalesPlatform.CMB && product.getType() == ProductType.FUND) {
             updateCMBFundProductNetValue(product, currentNetValues, qDate, latestDate);
         } else if (product.getSalesPlatform() == null || product.getSalesPlatform() == SalesPlatform.CMB) {
             updateCMBProductNetValue(product, currentNetValues, qDate, latestDate);
         } else if (product.getSalesPlatform() == SalesPlatform.WE_BANK) {
             updateWeBankProductNetValue(product, currentNetValues, qDate, latestDate);
         }
+    }
+
+    private void updateEastMoneyFundProductNetValue(Product product,
+                                                    Map<LocalDate, ProductNetValue> currentNetValues,
+                                                    LocalDate qDate,
+                                                    LocalDate latestDate) {
+
+        String fundCode = product.getSaleCode();
+        String dataScope = calculateFetchDataScope(qDate, latestDate);
+
+        String range = switch (dataScope) {
+            case "A" -> "1m";
+            case "D" -> "ln";
+            default -> "jn";
+        };
+
+        List<FundNetValueDTO> fundNetValueDTOS = eastMoneyApiService.listFundNetValue(fundCode, range);
+
+        log.info("Query east-money fund product history net value, [{}, {}]: {}", fundCode, range, fundNetValueDTOS);
+
+        List<ProductNetValue> netValues = new ArrayList<>();
+
+        for (FundNetValueDTO dto : fundNetValueDTOS) {
+            LocalDate date = dto.getDate();
+            BigDecimal netValue = dto.getNetValue();
+            BigDecimal pctChange = dto.getPctChange();
+
+            ProductNetValue netValueEntity = currentNetValues.get(date);
+
+            if (netValueEntity != null) {
+                continue;
+            }
+
+            netValueEntity = new ProductNetValue();
+            netValueEntity.setDate(date);
+            netValueEntity.setProductSaleCode(fundCode);
+            netValueEntity.setInnerCode(fundCode);
+            netValueEntity.setProductName(product.getShortName());
+            netValueEntity.setValue(netValue);
+            netValueEntity.setPctChange(pctChange);
+
+            netValues.add(netValueEntity);
+        }
+
+        saveAllProductNetValues(netValues);
     }
 
     private void updateCMBFundProductNetValue(Product product,

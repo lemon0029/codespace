@@ -7,21 +7,19 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+class EastMoneyApiServiceTest {
 
-class EastMoneyMobileApiServiceTest {
-
-    private final EastMoneyMobileApiService eastMoneyMobileApiService = new EastMoneyMobileApiService();
+    private final EastMoneyApiService eastMoneyApiService = new EastMoneyApiService();
 
     @Test
     void getFundDetail() {
-        FundDetailDTO fundDetail = eastMoneyMobileApiService.getFundDetail("050025");
+        FundDetailDTO fundDetail = eastMoneyApiService.getFundDetail("050025");
         Assertions.assertNotNull(fundDetail);
     }
 
     @Test
     void listFundNetValue() {
-        List<FundNetValueDTO> fundNetValueDTOS = eastMoneyMobileApiService.listFundNetValue("050025", "ln");
+        List<FundNetValueDTO> fundNetValueDTOS = eastMoneyApiService.listFundNetValue("050025", "ln");
         Assertions.assertNotNull(fundNetValueDTOS);
     }
 }
