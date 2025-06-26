@@ -4,8 +4,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 @SpringBootTest
 class SnowballFundApiClientTest {
 
@@ -15,5 +13,10 @@ class SnowballFundApiClientTest {
     @Test
     void queryFundInfo() {
         snowballFundApiClient.queryFundInfo("050025");
+    }
+
+    @Test
+    void getIndexTraces() {
+        snowballFundApiClient.getIndexTraces("GINDX");
     }
 }
