@@ -46,3 +46,6 @@ data-sync-task:
     - sales-platform: east_money
       product-type: fund
       product-sale-code: "050025"
+
+    - product-type: fund
+      trace-index-symbol: "GINDX"

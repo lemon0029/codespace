@@ -13,7 +13,7 @@ class EastMoneyApiServiceTest {
 
     @Test
     void getFundDetail() {
-        FundDetailDTO fundDetail = eastMoneyApiService.getFundDetail("050025");
+        FundDetailDTO fundDetail = eastMoneyApiService.getFundDetail("015300");
         Assertions.assertNotNull(fundDetail);
     }
 

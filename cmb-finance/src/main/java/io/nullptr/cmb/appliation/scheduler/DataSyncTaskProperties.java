@@ -40,6 +40,7 @@ public class DataSyncTaskProperties {
         private ProductType productType = ProductType.WEALTH;
         private SalesPlatform salesPlatform;
         private String productSaleCode;
+        private String traceIndexSymbol;
         private String productName;
     }
 }

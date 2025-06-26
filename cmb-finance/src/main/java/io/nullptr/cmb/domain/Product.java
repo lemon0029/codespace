@@ -64,6 +64,8 @@ public class Product {
 
     private boolean subscribed;
 
+    private String traceIndex;
+
     @CreatedDate
     private LocalDateTime createdAt;
 

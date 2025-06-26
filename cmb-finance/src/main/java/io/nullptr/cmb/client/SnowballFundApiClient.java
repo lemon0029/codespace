@@ -17,10 +17,10 @@ public class SnowballFundApiClient {
 
     private static final SnowballFundApiService API_SERVICE = createSnowballApiService();
 
-    public void getIndexTraces(String symbol) {
+    public IndexFundTraceDTO getIndexTraces(String symbol) {
         SnowballApiCallResponse<IndexFundTraceDTO> apiCallResponse = API_SERVICE.getIndexTraces(symbol);
 
-        System.out.println(apiCallResponse.getData());
+        return apiCallResponse.getData();
     }
 
     public void queryFundInfo(String symbol) {

@@ -9,6 +9,7 @@ import io.nullptr.cmb.domain.SalesPlatform;
 import io.nullptr.cmb.domain.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -25,14 +26,13 @@ public class EastMoneyProductDataSyncService implements SubscribeProductDataSync
     @Override
     public void doSync(List<DataSyncTaskProperties.SubscribedProduct> subscribedProducts) {
         for (DataSyncTaskProperties.SubscribedProduct subscribedProduct : subscribedProducts) {
-            Product product = updateProduct(subscribedProduct);
+            Product product = updateProduct(null, subscribedProduct.getProductSaleCode());
 
             productDataSyncTaskSupport.updateProductNetValue(product);
         }
     }
 
-    private Product updateProduct(DataSyncTaskProperties.SubscribedProduct subscribedProduct) {
-        String fundCode = subscribedProduct.getProductSaleCode();
+    public Product updateProduct(String traceIndex, String fundCode) {
         FundDetailDTO fundDetail = eastMoneyApiService.getFundDetail(fundCode);
 
         Product product = productRepository.findByInnerCode(fundCode)
@@ -44,6 +44,10 @@ public class EastMoneyProductDataSyncService implements SubscribeProductDataSync
         product.setRiskLevel(fundDetail.getRiskLevel());
         product.setProductTag(fundDetail.getType());
         product.setType(ProductType.FUND);
+
+        if (StringUtils.hasText(traceIndex)) {
+            product.setTraceIndex(traceIndex);
+        }
 
         if (product.getId() == null) {
             product.setRiskType("N/A");
